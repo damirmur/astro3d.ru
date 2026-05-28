@@ -1,0 +1,63 @@
+body {
+    font-family: monospace;
+    margin: 0;
+    padding: 0;
+}
+
+body * {
+    margin: 0 auto;
+    border: 0;
+}
+
+.center {
+    min-width: max-content;
+    text-align: center;
+    position: relative;
+    margin: 5px;
+    padding: 5px;
+    top: 0;
+    left: 0;
+}
+
+.work {
+    display: flex;
+    border: 1px solid black;
+    height: max-content;
+    flex-direction: column;
+    border-radius: 15px;
+    padding: 3px;
+}
+
+#chart {
+    width: 700px;
+    border: 1px solid black;
+}
+
+.grid {
+    width: 596px;
+    display: inline-grid;
+    grid-template-columns: auto auto auto auto;
+    padding: 2px;
+    margin: 1px auto;
+    align-items: center;
+    justify-content: space-between;
+    align-content: center;
+}
+
+.grid * {
+    border-bottom: 1px solid rgba(83, 83, 83, 0.4);
+    margin: 1px 0px;
+}
+
+.grid label {
+    border: 0;
+}
+
+select-checkbox {
+    font-weight: bold;
+}
+
+[type=button] {
+    border: 1px solid rgba(83, 83, 83, 0.4);
+    border-radius: 5px;
+}

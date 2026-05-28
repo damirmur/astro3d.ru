@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Эфемериды 2D</title>
+    <script>
+        const android = (navigator.userAgent.search(/Android|Linux/) > 0) ? true : false;
+        const defA3D = {
+            locale: (navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language),
+            tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        }
+    </script>
+    <script type="module" src="/js/start.js"></script>
+    <script src='/js/web_statisic/google.js'></script>
+    <script src='/js/web_statisic/yandex.js'></script>
+    <script src='/js/astro/astrodate-0.0.10.js'></script>
+    <script src='/js/lib/source-0.0.6.js'></script>
+    <script src='/js/components/select-checkbox-0.0.3.js'></script>
+    <script src='/js/ephe/pluto.min.js'></script>
+
+    <link rel="stylesheet" href="/css/fragments.css">
+    <link rel="stylesheet" href="/css/ephemeris2D.css">
+    <style>
+        footer {
+            position: static;
+            bottom: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header"></header>
+    <div class="center">
+        <div class="work">
+            <div class="grid">
+                <label>UTC for: <input name="dateStart" type="datetime-local"></label>
+                <label>to: <input name="dateEnd" type="date"></label>
+                <label>step:
+                    <select name="step"
+                        title="Warning! Choosing a small value can greatly increase computation time and slow down the program.">
+                        <option value="1">1 min</option>
+                        <option value="30">30 min</option>
+                        <option value="60">1 hour</option>
+                        <option value="720">12 h</option>
+                        <option value="1440" selected>1 day</option>
+                        <option value="43830">1 month</option>
+                        <option value="262980">½ year</option>
+                    </select></label>
+                <input class="calcAstro" name="button" value="▶" type="button">
+                <select-checkbox id="planets"></select-checkbox>
+                <label><input type="checkbox" id='sidetime' /> SideTime</label>
+                <label id="stepLabel"><input type="checkbox" id='speed' /> speed °/day</label>
+                <select name="ephFlag">
+                    <option value="260" selected>Topo</option>
+                    <option value="268">Gelio</option>
+                </select>
+            </div>
+        </div>
+        <div id="chart">
+            <h3>Идет загрузка программы ...</h3>
+        </div>
+    </div>
+    <script>
+        addEventListener("load", (event) => {
+            const $ = {
+                hourToTime: $ad.hourToTime,
+                getPlanetPeriod: Source.def.getPlanetPeriod,
+                plSign: $ad.plSignChort,
+                strZod: $ad.strZod,
+                zeroPadded: $ad.zeroPadded,
+                dbSave: (data, key = 'ephe2D') => { localStorage.setItem(key, JSON.stringify(data)) },
+                dbLoad: (key = 'ephe2D') => { return JSON.parse(localStorage.getItem(key)) },
+            };
+            let ephe2D = ($.dbLoad()) ? $.dbLoad() : {
+                planets: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12],
+                flag: 260 //260|268
+            };
+            document.querySelector(".grid #planets").obj = $.plSign;
+            document.querySelector(".grid #planets").value = ephe2D.planets;
+            document.querySelector(".grid #planets").name = Array.from(ephe2D.planets, (el) => $.plSign[el]);
+            if (document.querySelector(".grid #planets").value.length == 0) {
+                document.querySelector(".grid #planets").name = 'Select planets';
+            }
+            document.querySelector(".grid #planets").addEventListener("change", (e) => {
+                ephe2D.planets = e.target.value;
+                e.target.name = Array.from(ephe2D.planets, (el) => $.plSign[el]);
+                if (e.target.value.length == 0) {
+                    e.target.name = 'Select planets';
+                }
+            });
+            document.querySelector(".grid #speed").checked = ephe2D.speed;
+            document.querySelector(".grid #speed").addEventListener("change", (e) => {
+                ephe2D.speed = e.target.checked;
+            });
+            document.querySelector(".grid [name=step]").addEventListener("change", (e) => {
+                ephe2D.stepMin = Number(e.target.value);
+            });
+            document.querySelector(".grid #sidetime").checked = ephe2D.sidetime;
+            document.querySelector(".grid #sidetime").addEventListener("change", (e) => {
+                ephe2D.sidetime = e.target.checked;
+            });
+            document.querySelector(".grid [name=ephFlag]").value = ephe2D.flag;
+            const newDateLocal = () => {
+                const dt = new Date();
+                dt.setUTCHours(0, 0, 0, 0);
+                return dt.toISOString().slice(0, 16);
+            };
+            const endDateLocal = (valueAsNumber, stepMin = (1440 * 31)) => {//365.25
+                const dt = new Date(valueAsNumber);
+                dt.setMinutes(dt.getMinutes() + stepMin);
+                return dt.toISOString().slice(0, 10);
+            };
+            document.querySelector("[name=dateStart]").value = newDateLocal();
+            ephe2D.dateStart = document.querySelector("[name=dateStart]").valueAsNumber;
+            document.querySelector("[name=dateEnd]").value = endDateLocal(ephe2D.dateStart);
+            ephe2D.dateEnd = document.querySelector("[name=dateEnd]").valueAsNumber;
+            ephe2D.stepMin = Number(document.querySelector("[name=step]").value);
+            if (!$.dbLoad()) {
+                ephe2D.planets = document.querySelector(".grid #planets").value;
+                ephe2D.speed = document.querySelector(".grid #speed").value;
+                ephe2D.sidetime = document.querySelector(".grid #sidetime").value;
+            };
+            document.querySelector("#chart").addEventListener('afterplot', (e) => {
+                document.querySelector(".calcAstro").value = '▶';
+            });
+            document.querySelector(".calcAstro").addEventListener('click', (e) => {
+                ephe2D['out'] = {};
+                $.dbSave(ephe2D);
+                e.target.value = '⭕';
+                ephe2D.dateStart = document.querySelector("[name=dateStart]").valueAsNumber;
+                ephe2D.dateEnd = document.querySelector("[name=dateEnd]").valueAsNumber;
+                if (ephe2D.dateEnd < ephe2D.dateTemp) {
+                    ephe2D.dateEnd = ephe2D.dateTemp;
+                    document.querySelector("[name=dateEnd]").valueAsNumber = ephe2D.dateTemp;
+                };
+                ephe2D.planets = document.querySelector(".grid #planets").value;
+                ephe2D.speed = document.querySelector(".grid #speed").checked;
+                ephe2D.sidetime = document.querySelector(".grid #sidetime").checked;
+                ephe2D.stepMin = Number(document.querySelector(".grid [name=step]").value);
+                ephe2D.flag = Number(document.querySelector(".grid [name=ephFlag]").value);
+                ephe2D['out'] = {};
+                $.dbSave(ephe2D);
+                setTimeout(() => {
+                    if (document.getElementById('chart').removeAllListeners) {
+                        document.getElementById('chart').removeAllListeners();
+                    };
+                    document.getElementById('chart').indata = ephe2D;
+                    document.getElementById('chart').calc(HTML);
+                });
+            });
+            const HTML = document.getElementById('chart');
+            HTML.indata = ephe2D;
+            HTML.calc = (parent) => {
+                const promiseAll = [];
+                promiseAll.push((() => {
+                    const start = new Date().getTime();
+                    const out = $.getPlanetPeriod(parent.indata, parent.indata.flag).out;
+                    const table = document.createElement("table");
+                    const thead = document.createElement("thead");
+                    table.appendChild(thead);
+                    const tbody = document.createElement("tbody");
+                    table.appendChild(tbody);
+                    const rowHead0 = thead.insertRow(-1);
+                    const rowHead1 = thead.insertRow(-1);
+                    let cell = rowHead0.insertCell(-1);
+                    cell.innerHTML = `Date`;
+                    if (parent.indata.speed) { cell.setAttribute('rowspan', 2); }
+                    if (parent.indata.sidetime) {
+                        cell = rowHead0.insertCell(-1);
+                        cell.innerHTML = `Sid.time`;
+                        if (parent.indata.speed) { cell.setAttribute('rowspan', 2); }
+                    }
+                    for (const [planets, value] of Object.entries(out.planets)) {
+                        const cell = rowHead0.insertCell(-1);
+                        cell.innerHTML = $.plSign[planets];
+                        if (parent.indata.speed) {
+                            cell.setAttribute('colspan', 2);
+                            rowHead1.insertCell(-1).innerHTML = `long.`;
+                            rowHead1.insertCell(-1).innerHTML = `speed`;
+                        };
+                    }
+                    out.date.forEach((date, i) => {
+                        const data = new Date(date);
+                        const row = tbody.insertRow(-1);
+                        row.insertCell(-1).innerHTML = (parent.indata.stepMin < 1440) ? data.toISOString().slice(0, 16) : data.toISOString().slice(0, 10);
+                        if (data.getDay() == 0) {
+                            row.classList.add('day0');
+                        }
+                        if (parent.indata.sidetime) {
+                            row.insertCell(-1).innerHTML = $.hourToTime(out.sidetime[i]);
+                        }
+                    })
+                    for (const [planets, value] of Object.entries(out.planets)) {
+                        value.forEach((data, i) => {
+                            let row = tbody.rows[i];
+                            const dataObj = $.strZod([data, out.speed[planets][i]]);
+                            if (parent.indata.speed) {
+                                row.insertCell(-1).innerHTML = (android) ? $.zeroPadded(dataObj.deg) +
+                                    `<img class='android' src=/img/zodiac/` + dataObj.sign + `.png>` +
+                                    $.zeroPadded(dataObj.min) + `'` + $.zeroPadded(dataObj.sec) + `"` : $.strZod([data, 1]).text;
+                                row.insertCell(-1).innerHTML = $.strZod([data, out.speed[planets][i]]).textSpeed;
+                            } else {
+                                row.insertCell(-1).innerHTML = (android) ? $.zeroPadded(dataObj.deg) +
+                                    `<img class='android' src=/img/zodiac/` + dataObj.sign + `.png>` +
+                                    $.zeroPadded(dataObj.min) + `'` + $.zeroPadded(dataObj.sec) + `"` + dataObj.retro : dataObj.text;
+                            }
+                        })
+                    }
+                    const end = new Date().getTime();
+                    HTML.textContent = ``;
+                    HTML.appendChild(table);
+                })());
+                Promise.all(promiseAll).then((res) => {
+                    document.querySelector(".calcAstro").value = '▶';
+                });
+            };
+            HTML.calc(HTML);
+        });
+
+    </script>
+    <footer></footer>
+    <script src="/js/fragments/header.js"></script>
+    <script src="/js/fragments/footer.js"></script>
+    <script>
+        document.querySelector('header select[name=nav]').value = window.location.pathname;
+    </script>
+
+</body>
+
+</html>

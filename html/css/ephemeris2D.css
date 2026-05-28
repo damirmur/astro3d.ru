@@ -1,0 +1,82 @@
+body {
+    font-family: monospace;
+    margin: 0;
+    padding: 0;
+}
+
+body * {
+    margin: 0 auto;
+    border: 0;
+}
+
+.center {
+    text-align: center;
+    position: relative;
+    margin: 5px;
+    padding: 5px;
+    top: 0;
+    left: 0;
+    min-width: max-content;
+
+}
+
+.work {
+    width: fit-content;
+    display: flex;
+    border: 1px solid black;
+    height: fit-content;
+    flex-direction: column;
+    border-radius: 15px;
+    padding: 3px;
+}
+
+table {
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+table thead td{
+    border: 1px solid black;
+    font-weight: bold;
+}
+
+table td{
+    border: 1px solid black;
+}
+
+.day0{
+    background-color : rgba(83, 83, 83, 0.4);
+}
+
+#chart {
+    margin: 2px;
+}
+
+.grid {
+    width: 596px;
+    display: inline-grid;
+    grid-template-columns: auto auto auto auto;
+    padding: 2px;
+    margin: 1px auto;
+    align-items: center;
+    justify-content: space-between;
+    align-content: center;
+}
+
+.grid * {
+    border-bottom: 1px solid rgba(83, 83, 83, 0.4);
+    margin: 1px 0px;
+}
+
+.grid label {
+    border: 0;
+}
+
+select-checkbox {
+    font-weight: bold;
+}
+
+[type=button] {
+    border: 1px solid rgba(83, 83, 83, 0.4);
+    border-radius: 5px;
+}

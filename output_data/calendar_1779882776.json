@@ -1,0 +1,1436 @@
+{
+  "type": "calendar",
+  "timestamp": "2026-04-30T00:00:00Z",
+  "timezone": "Moscow, UTC+3",
+  "events": [
+    {
+      "date": "2026-04-30T22:01",
+      "type": "chS",
+      "planets": [
+        "1"
+      ],
+      "sign": 7,
+      "degrees": [
+        210
+      ]
+    },
+    {
+      "date": "2026-05-01T21:45",
+      "type": "exA",
+      "planets": [
+        "3",
+        "6"
+      ],
+      "aspect": "60",
+      "degrees": [
+        69,
+        9
+      ]
+    },
+    {
+      "date": "2026-05-03T09:33",
+      "type": "chS",
+      "planets": [
+        "1"
+      ],
+      "sign": 8,
+      "degrees": [
+        240
+      ]
+    },
+    {
+      "date": "2026-05-03T05:56",
+      "type": "chS",
+      "planets": [
+        "2"
+      ],
+      "sign": 1,
+      "degrees": [
+        30
+      ]
+    },
+    {
+      "date": "2026-05-05T22:06",
+      "type": "chS",
+      "planets": [
+        "1"
+      ],
+      "sign": 9,
+      "degrees": [
+        270
+      ]
+    },
+    {
+      "date": "2026-05-06T01:08",
+      "type": "exA",
+      "planets": [
+        "2",
+        "9"
+      ],
+      "aspect": "90",
+      "degrees": [
+        35,
+        305
+      ]
+    },
+    {
+      "date": "2026-05-05T05:08",
+      "type": "exA",
+      "planets": [
+        "4",
+        "5"
+      ],
+      "aspect": "90",
+      "degrees": [
+        20,
+        109
+      ]
+    },
+    {
+      "date": "2026-05-08T10:27",
+      "type": "chS",
+      "planets": [
+        "1"
+      ],
+      "sign": 10,
+      "degrees": [
+        300
+      ]
+    },
+    {
+      "date": "2026-05-10T20:39",
+      "type": "chS",
+      "planets": [
+        "1"
+      ],
+      "sign": 11,
+      "degrees": [
+        330
+      ]
+    },
+    {
+      "date": "2026-05-11T05:13",
+      "type": "exA",
+      "planets": [
+        "0",
+        "5"
+      ],
+      "aspect": "60",
+      "degrees": [
+        51,
+        110
+      ]
+    },
+    {
+      "date": "2026-05-13T03:03",
+      "type": "chS",
+      "planets": [
+        "1"
+      ],
+      "degrees": [
+        0
+      ]
+    },
+    {
+      "date": "2026-05-13T07:43",
+      "type": "exA",
+      "planets": [
+        "2",
+        "5"
+      ],
+      "aspect": "60",
+      "degrees": [
+        52,
+        110
+      ]
+    },
+    {
+      "date": "2026-05-15T05:31",
+      "type": "chS",
+      "planets": [
+        "1"
+      ],
+      "sign": 1,
+      "degrees": [
+        30
+      ]
+    },
+    {
+      "date": "2026-05-17T13:26",
+      "type": "chS",
+      "planets": [
+        "2"
+      ],
+      "sign": 2,
+      "degrees": [
+        60
+      ]
+    },
+    {
+      "date": "2026-05-17T05:23",
+      "type": "chS",
+      "planets": [
+        "1"
+      ],
+      "sign": 2,
+      "degrees": [
+        60
+      ]
+    },
+    {
+      "date": "2026-05-19T01:25",
+      "type": "chS",
+      "planets": [
+        "4"
+      ],
+      "sign": 1,
+      "degrees": [
+        30
+      ]
+    },
+    {
+      "date": "2026-05-19T04:46",
+      "type": "chS",
+      "planets": [
+        "1"
+      ],
+      "sign": 3,
+      "degrees": [
+        90
+      ]
+    },
+    {
+      "date": "2026-05-19T04:05",
+      "type": "chS",
+      "planets": [
+        "3"
+      ],
+      "sign": 3,
+      "degrees": [
+        90
+      ]
+    },
+    {
+      "date": "2026-05-19T07:04",
+      "type": "exA",
+      "planets": [
+        "2",
+        "8"
+      ],
+      "aspect": "60",
+      "degrees": [
+        65,
+        3
+      ]
+    },
+    {
+      "date": "2026-05-20T01:52",
+      "type": "exA",
+      "planets": [
+        "2",
+        "9"
+      ],
+      "aspect": "120",
+      "degrees": [
+        65,
+        305
+      ]
+    },
+    {
+      "date": "2026-05-19T08:37",
+      "type": "exA",
+      "planets": [
+        "3",
+        "4"
+      ],
+      "aspect": "60",
+      "degrees": [
+        91,
+        30
+      ]
+    },
+    {
+      "date": "2026-05-21T03:36",
+      "type": "chS",
+      "planets": [
+        "0"
+      ],
+      "sign": 2,
+      "degrees": [
+        60
+      ]
+    },
+    {
+      "date": "2026-05-21T05:47",
+      "type": "chS",
+      "planets": [
+        "1"
+      ],
+      "sign": 4,
+      "degrees": [
+        120
+      ]
+    },
+    {
+      "date": "2026-05-22T21:02",
+      "type": "exA",
+      "planets": [
+        "2",
+        "6"
+      ],
+      "aspect": "60",
+      "degrees": [
+        71,
+        11
+      ]
+    },
+    {
+      "date": "2026-05-22T09:31",
+      "type": "exA",
+      "planets": [
+        "3",
+        "8"
+      ],
+      "aspect": "90",
+      "degrees": [
+        94,
+        3
+      ]
+    },
+    {
+      "date": "2026-05-23T09:57",
+      "type": "chS",
+      "planets": [
+        "1"
+      ],
+      "sign": 5,
+      "degrees": [
+        150
+      ]
+    },
+    {
+      "date": "2026-05-25T17:34",
+      "type": "chS",
+      "planets": [
+        "1"
+      ],
+      "sign": 6,
+      "degrees": [
+        180
+      ]
+    },
+    {
+      "date": "2026-05-25T05:22",
+      "type": "exA",
+      "planets": [
+        "0",
+        "8"
+      ],
+      "aspect": "60",
+      "degrees": [
+        64,
+        3
+      ]
+    },
+    {
+      "date": "2026-05-26T18:52",
+      "type": "exA",
+      "planets": [
+        "0",
+        "9"
+      ],
+      "aspect": "120",
+      "degrees": [
+        65,
+        305
+      ]
+    },
+    {
+      "date": "2026-05-26T07:01",
+      "type": "exA",
+      "planets": [
+        "4",
+        "9"
+      ],
+      "aspect": "90",
+      "degrees": [
+        36,
+        305
+      ]
+    },
+    {
+      "date": "2026-05-28T03:52",
+      "type": "chS",
+      "planets": [
+        "1"
+      ],
+      "sign": 7,
+      "degrees": [
+        210
+      ]
+    },
+    {
+      "date": "2026-05-29T06:02",
+      "type": "exA",
+      "planets": [
+        "3",
+        "6"
+      ],
+      "aspect": "90",
+      "degrees": [
+        103,
+        12
+      ]
+    },
+    {
+      "date": "2026-05-30T15:44",
+      "type": "chS",
+      "planets": [
+        "1"
+      ],
+      "sign": 8,
+      "degrees": [
+        240
+      ]
+    },
+    {
+      "date": "2026-06-01T14:55",
+      "type": "chS",
+      "planets": [
+        "2"
+      ],
+      "sign": 3,
+      "degrees": [
+        90
+      ]
+    },
+    {
+      "date": "2026-04-30T18:43",
+      "type": "lunD",
+      "sign": 15
+    },
+    {
+      "date": "2026-04-30T00:06",
+      "type": "noC",
+      "planets": [
+        "1"
+      ],
+      "change_sign": "2026-04-30T22:01"
+    },
+    {
+      "date": "2026-05-01T08:50",
+      "type": "exA",
+      "planets": [
+        "1",
+        "9"
+      ],
+      "aspect": "90",
+      "degrees": [
+        215,
+        305
+      ]
+    },
+    {
+      "date": "2026-05-01T20:23",
+      "type": "lunD",
+      "sign": 16
+    },
+    {
+      "date": "2026-05-02T11:47",
+      "type": "exA",
+      "planets": [
+        "1",
+        "5"
+      ],
+      "aspect": "120",
+      "degrees": [
+        229,
+        109
+      ]
+    },
+    {
+      "date": "2026-05-02T22:20",
+      "type": "lunD",
+      "sign": 17
+    },
+    {
+      "date": "2026-05-02T11:47",
+      "type": "noC",
+      "planets": [
+        "1"
+      ],
+      "change_sign": "2026-05-03T09:33"
+    },
+    {
+      "date": "2026-05-03T16:15",
+      "type": "exA",
+      "planets": [
+        "1",
+        "8"
+      ],
+      "aspect": "120",
+      "degrees": [
+        243,
+        3
+      ]
+    },
+    {
+      "date": "2026-05-03T20:37",
+      "type": "exA",
+      "planets": [
+        "1",
+        "9"
+      ],
+      "aspect": "60",
+      "degrees": [
+        245,
+        305
+      ]
+    },
+    {
+      "date": "2026-05-04T00:32",
+      "type": "lunD",
+      "sign": 18
+    },
+    {
+      "date": "2026-05-04T04:38",
+      "type": "exA",
+      "planets": [
+        "1",
+        "6"
+      ],
+      "aspect": "120",
+      "degrees": [
+        249,
+        9
+      ]
+    },
+    {
+      "date": "2026-05-05T00:33",
+      "type": "exA",
+      "planets": [
+        "1",
+        "4"
+      ],
+      "aspect": "120",
+      "degrees": [
+        259,
+        19
+      ]
+    },
+    {
+      "date": "2026-05-05T02:54",
+      "type": "lunD",
+      "sign": 19
+    },
+    {
+      "date": "2026-05-05T00:33",
+      "type": "noC",
+      "planets": [
+        "1"
+      ],
+      "change_sign": "2026-05-05T22:06"
+    },
+    {
+      "date": "2026-05-06T05:21",
+      "type": "lunD",
+      "sign": 20
+    },
+    {
+      "date": "2026-05-06T05:00",
+      "type": "exA",
+      "planets": [
+        "1",
+        "8"
+      ],
+      "aspect": "90",
+      "degrees": [
+        273,
+        3
+      ]
+    },
+    {
+      "date": "2026-05-06T10:54",
+      "type": "exA",
+      "planets": [
+        "1",
+        "2"
+      ],
+      "aspect": "120",
+      "degrees": [
+        276,
+        36
+      ]
+    },
+    {
+      "date": "2026-05-06T17:51",
+      "type": "exA",
+      "planets": [
+        "1",
+        "6"
+      ],
+      "aspect": "90",
+      "degrees": [
+        279,
+        9
+      ]
+    },
+    {
+      "date": "2026-05-07T07:44",
+      "type": "lunD",
+      "sign": 21
+    },
+    {
+      "date": "2026-05-07T07:44",
+      "type": "exA",
+      "planets": [
+        "1",
+        "0"
+      ],
+      "aspect": "120",
+      "degrees": [
+        286,
+        46
+      ]
+    },
+    {
+      "date": "2026-05-07T17:18",
+      "type": "exA",
+      "planets": [
+        "1",
+        "4"
+      ],
+      "aspect": "90",
+      "degrees": [
+        291,
+        21
+      ]
+    },
+    {
+      "date": "2026-05-08T09:52",
+      "type": "lunD",
+      "sign": 22
+    },
+    {
+      "date": "2026-05-07T17:18",
+      "type": "noC",
+      "planets": [
+        "1"
+      ],
+      "change_sign": "2026-05-08T10:27"
+    },
+    {
+      "date": "2026-05-08T11:49",
+      "type": "exA",
+      "planets": [
+        "1",
+        "7"
+      ],
+      "aspect": "120",
+      "degrees": [
+        300,
+        60
+      ]
+    },
+    {
+      "date": "2026-05-08T17:22",
+      "type": "exA",
+      "planets": [
+        "1",
+        "8"
+      ],
+      "aspect": "60",
+      "degrees": [
+        303,
+        3
+      ]
+    },
+    {
+      "date": "2026-05-09T06:16",
+      "type": "exA",
+      "planets": [
+        "1",
+        "6"
+      ],
+      "aspect": "60",
+      "degrees": [
+        310,
+        10
+      ]
+    },
+    {
+      "date": "2026-05-09T11:33",
+      "type": "lunD",
+      "sign": 23
+    },
+    {
+      "date": "2026-05-09T11:07",
+      "type": "exA",
+      "planets": [
+        "1",
+        "2"
+      ],
+      "aspect": "90",
+      "degrees": [
+        312,
+        42
+      ]
+    },
+    {
+      "date": "2026-05-09T23:39",
+      "type": "exA",
+      "planets": [
+        "1",
+        "3"
+      ],
+      "aspect": "120",
+      "degrees": [
+        319,
+        79
+      ]
+    },
+    {
+      "date": "2026-05-10T00:10",
+      "type": "exA",
+      "planets": [
+        "1",
+        "0"
+      ],
+      "aspect": "90",
+      "degrees": [
+        319,
+        49
+      ]
+    },
+    {
+      "date": "2026-05-10T08:08",
+      "type": "exA",
+      "planets": [
+        "1",
+        "4"
+      ],
+      "aspect": "60",
+      "degrees": [
+        323,
+        23
+      ]
+    },
+    {
+      "date": "2026-05-10T12:37",
+      "type": "lunD",
+      "sign": 24
+    },
+    {
+      "date": "2026-05-10T08:08",
+      "type": "noC",
+      "planets": [
+        "1"
+      ],
+      "change_sign": "2026-05-10T20:39"
+    },
+    {
+      "date": "2026-05-10T22:13",
+      "type": "exA",
+      "planets": [
+        "1",
+        "7"
+      ],
+      "aspect": "90",
+      "degrees": [
+        331,
+        60
+      ]
+    },
+    {
+      "date": "2026-05-11T12:55",
+      "type": "lunD",
+      "sign": 25
+    },
+    {
+      "date": "2026-05-12T06:42",
+      "type": "exA",
+      "planets": [
+        "1",
+        "2"
+      ],
+      "aspect": "60",
+      "degrees": [
+        348,
+        48
+      ]
+    },
+    {
+      "date": "2026-05-12T10:29",
+      "type": "exA",
+      "planets": [
+        "1",
+        "5"
+      ],
+      "aspect": "120",
+      "degrees": [
+        350,
+        110
+      ]
+    },
+    {
+      "date": "2026-05-12T12:22",
+      "type": "lunD",
+      "sign": 26
+    },
+    {
+      "date": "2026-05-12T12:22",
+      "type": "exA",
+      "planets": [
+        "1",
+        "0"
+      ],
+      "aspect": "60",
+      "degrees": [
+        352,
+        51
+      ]
+    },
+    {
+      "date": "2026-05-12T13:04",
+      "type": "exA",
+      "planets": [
+        "1",
+        "3"
+      ],
+      "aspect": "90",
+      "degrees": [
+        352,
+        82
+      ]
+    },
+    {
+      "date": "2026-05-12T13:04",
+      "type": "noC",
+      "planets": [
+        "1"
+      ],
+      "change_sign": "2026-05-13T03:03"
+    },
+    {
+      "date": "2026-05-13T04:44",
+      "type": "exA",
+      "planets": [
+        "1",
+        "7"
+      ],
+      "aspect": "60",
+      "degrees": [
+        1,
+        60
+      ]
+    },
+    {
+      "date": "2026-05-13T11:00",
+      "type": "lunD",
+      "sign": 27
+    },
+    {
+      "date": "2026-05-13T12:34",
+      "type": "exA",
+      "planets": [
+        "1",
+        "9"
+      ],
+      "aspect": "60",
+      "degrees": [
+        5,
+        305
+      ]
+    },
+    {
+      "date": "2026-05-14T08:51",
+      "type": "lunD",
+      "sign": 28
+    },
+    {
+      "date": "2026-05-14T14:40",
+      "type": "exA",
+      "planets": [
+        "1",
+        "5"
+      ],
+      "aspect": "90",
+      "degrees": [
+        21,
+        110
+      ]
+    },
+    {
+      "date": "2026-05-14T21:06",
+      "type": "exA",
+      "planets": [
+        "1",
+        "3"
+      ],
+      "aspect": "60",
+      "degrees": [
+        25,
+        84
+      ]
+    },
+    {
+      "date": "2026-05-14T21:06",
+      "type": "noC",
+      "planets": [
+        "1"
+      ],
+      "change_sign": "2026-05-15T05:31"
+    },
+    {
+      "date": "2026-05-15T06:01",
+      "type": "lunD",
+      "sign": 29
+    },
+    {
+      "date": "2026-05-15T14:25",
+      "type": "exA",
+      "planets": [
+        "1",
+        "9"
+      ],
+      "aspect": "90",
+      "degrees": [
+        35,
+        305
+      ]
+    },
+    {
+      "date": "2026-05-16T02:41",
+      "type": "lunD",
+      "sign": 30
+    },
+    {
+      "date": "2026-05-16T15:39",
+      "type": "exA",
+      "planets": [
+        "1",
+        "5"
+      ],
+      "aspect": "60",
+      "degrees": [
+        51,
+        111
+      ]
+    },
+    {
+      "date": "2026-05-16T23:01",
+      "type": "lunD",
+      "sign": 1
+    },
+    {
+      "date": "2026-05-16T15:39",
+      "type": "noC",
+      "planets": [
+        "1"
+      ],
+      "change_sign": "2026-05-17T05:23"
+    },
+    {
+      "date": "2026-05-17T11:15",
+      "type": "exA",
+      "planets": [
+        "1",
+        "8"
+      ],
+      "aspect": "60",
+      "degrees": [
+        64,
+        3
+      ]
+    },
+    {
+      "date": "2026-05-17T14:00",
+      "type": "exA",
+      "planets": [
+        "1",
+        "9"
+      ],
+      "aspect": "120",
+      "degrees": [
+        66,
+        305
+      ]
+    },
+    {
+      "date": "2026-05-17T19:11",
+      "type": "lunD",
+      "sign": 2
+    },
+    {
+      "date": "2026-05-17T22:35",
+      "type": "exA",
+      "planets": [
+        "1",
+        "6"
+      ],
+      "aspect": "60",
+      "degrees": [
+        71,
+        10
+      ]
+    },
+    {
+      "date": "2026-05-18T15:23",
+      "type": "lunD",
+      "sign": 3
+    },
+    {
+      "date": "2026-05-19T04:56",
+      "type": "exA",
+      "planets": [
+        "1",
+        "4"
+      ],
+      "aspect": "60",
+      "degrees": [
+        90,
+        30
+      ]
+    },
+    {
+      "date": "2026-05-19T10:48",
+      "type": "exA",
+      "planets": [
+        "1",
+        "8"
+      ],
+      "aspect": "90",
+      "degrees": [
+        93,
+        3
+      ]
+    },
+    {
+      "date": "2026-05-19T11:48",
+      "type": "lunD",
+      "sign": 4
+    },
+    {
+      "date": "2026-05-19T22:40",
+      "type": "exA",
+      "planets": [
+        "1",
+        "6"
+      ],
+      "aspect": "90",
+      "degrees": [
+        101,
+        11
+      ]
+    },
+    {
+      "date": "2026-05-20T08:37",
+      "type": "lunD",
+      "sign": 5
+    },
+    {
+      "date": "2026-05-21T05:57",
+      "type": "lunD",
+      "sign": 6
+    },
+    {
+      "date": "2026-05-21T05:57",
+      "type": "exA",
+      "planets": [
+        "1",
+        "0"
+      ],
+      "aspect": "60",
+      "degrees": [
+        120,
+        60
+      ]
+    },
+    {
+      "date": "2026-05-21T08:42",
+      "type": "exA",
+      "planets": [
+        "1",
+        "4"
+      ],
+      "aspect": "90",
+      "degrees": [
+        121,
+        31
+      ]
+    },
+    {
+      "date": "2026-05-21T08:12",
+      "type": "exA",
+      "planets": [
+        "1",
+        "7"
+      ],
+      "aspect": "60",
+      "degrees": [
+        121,
+        61
+      ]
+    },
+    {
+      "date": "2026-05-21T12:15",
+      "type": "exA",
+      "planets": [
+        "1",
+        "8"
+      ],
+      "aspect": "120",
+      "degrees": [
+        124,
+        3
+      ]
+    },
+    {
+      "date": "2026-05-21T21:42",
+      "type": "exA",
+      "planets": [
+        "1",
+        "2"
+      ],
+      "aspect": "60",
+      "degrees": [
+        129,
+        69
+      ]
+    },
+    {
+      "date": "2026-05-22T01:05",
+      "type": "exA",
+      "planets": [
+        "1",
+        "6"
+      ],
+      "aspect": "120",
+      "degrees": [
+        131,
+        11
+      ]
+    },
+    {
+      "date": "2026-05-22T03:55",
+      "type": "lunD",
+      "sign": 7
+    },
+    {
+      "date": "2026-05-23T02:34",
+      "type": "lunD",
+      "sign": 8
+    },
+    {
+      "date": "2026-05-22T01:05",
+      "type": "noC",
+      "planets": [
+        "1"
+      ],
+      "change_sign": "2026-05-23T09:57"
+    },
+    {
+      "date": "2026-05-23T12:45",
+      "type": "exA",
+      "planets": [
+        "1",
+        "7"
+      ],
+      "aspect": "90",
+      "degrees": [
+        151,
+        61
+      ]
+    },
+    {
+      "date": "2026-05-23T14:10",
+      "type": "exA",
+      "planets": [
+        "1",
+        "0"
+      ],
+      "aspect": "90",
+      "degrees": [
+        152,
+        62
+      ]
+    },
+    {
+      "date": "2026-05-23T16:12",
+      "type": "exA",
+      "planets": [
+        "1",
+        "4"
+      ],
+      "aspect": "120",
+      "degrees": [
+        153,
+        33
+      ]
+    },
+    {
+      "date": "2026-05-23T20:00",
+      "type": "exA",
+      "planets": [
+        "1",
+        "3"
+      ],
+      "aspect": "60",
+      "degrees": [
+        156,
+        95
+      ]
+    },
+    {
+      "date": "2026-05-24T01:57",
+      "type": "lunD",
+      "sign": 9
+    },
+    {
+      "date": "2026-05-24T13:05",
+      "type": "exA",
+      "planets": [
+        "1",
+        "2"
+      ],
+      "aspect": "90",
+      "degrees": [
+        165,
+        74
+      ]
+    },
+    {
+      "date": "2026-05-25T02:01",
+      "type": "lunD",
+      "sign": 10
+    },
+    {
+      "date": "2026-05-25T03:54",
+      "type": "exA",
+      "planets": [
+        "1",
+        "5"
+      ],
+      "aspect": "60",
+      "degrees": [
+        172,
+        112
+      ]
+    },
+    {
+      "date": "2026-05-25T03:54",
+      "type": "noC",
+      "planets": [
+        "1"
+      ],
+      "change_sign": "2026-05-25T17:34"
+    },
+    {
+      "date": "2026-05-25T20:48",
+      "type": "exA",
+      "planets": [
+        "1",
+        "7"
+      ],
+      "aspect": "120",
+      "degrees": [
+        181,
+        61
+      ]
+    },
+    {
+      "date": "2026-05-26T02:41",
+      "type": "lunD",
+      "sign": 11
+    },
+    {
+      "date": "2026-05-26T02:41",
+      "type": "exA",
+      "planets": [
+        "1",
+        "0"
+      ],
+      "aspect": "120",
+      "degrees": [
+        184,
+        64
+      ]
+    },
+    {
+      "date": "2026-05-26T03:56",
+      "type": "exA",
+      "planets": [
+        "1",
+        "9"
+      ],
+      "aspect": "120",
+      "degrees": [
+        185,
+        305
+      ]
+    },
+    {
+      "date": "2026-05-26T10:08",
+      "type": "exA",
+      "planets": [
+        "1",
+        "3"
+      ],
+      "aspect": "90",
+      "degrees": [
+        189,
+        98
+      ]
+    },
+    {
+      "date": "2026-05-27T03:52",
+      "type": "lunD",
+      "sign": 12
+    },
+    {
+      "date": "2026-05-27T09:10",
+      "type": "exA",
+      "planets": [
+        "1",
+        "2"
+      ],
+      "aspect": "120",
+      "degrees": [
+        200,
+        80
+      ]
+    },
+    {
+      "date": "2026-05-27T14:32",
+      "type": "exA",
+      "planets": [
+        "1",
+        "5"
+      ],
+      "aspect": "90",
+      "degrees": [
+        203,
+        113
+      ]
+    },
+    {
+      "date": "2026-05-27T14:32",
+      "type": "noC",
+      "planets": [
+        "1"
+      ],
+      "change_sign": "2026-05-28T03:52"
+    },
+    {
+      "date": "2026-05-28T05:27",
+      "type": "lunD",
+      "sign": 13
+    },
+    {
+      "date": "2026-05-28T14:34",
+      "type": "exA",
+      "planets": [
+        "1",
+        "9"
+      ],
+      "aspect": "90",
+      "degrees": [
+        215,
+        305
+      ]
+    },
+    {
+      "date": "2026-05-29T03:25",
+      "type": "exA",
+      "planets": [
+        "1",
+        "3"
+      ],
+      "aspect": "120",
+      "degrees": [
+        222,
+        101
+      ]
+    },
+    {
+      "date": "2026-05-29T07:21",
+      "type": "lunD",
+      "sign": 14
+    },
+    {
+      "date": "2026-05-30T03:04",
+      "type": "exA",
+      "planets": [
+        "1",
+        "5"
+      ],
+      "aspect": "120",
+      "degrees": [
+        234,
+        113
+      ]
+    },
+    {
+      "date": "2026-05-30T09:28",
+      "type": "lunD",
+      "sign": 15
+    },
+    {
+      "date": "2026-05-30T03:04",
+      "type": "noC",
+      "planets": [
+        "1"
+      ],
+      "change_sign": "2026-05-30T15:44"
+    },
+    {
+      "date": "2026-05-30T23:52",
+      "type": "exA",
+      "planets": [
+        "1",
+        "8"
+      ],
+      "aspect": "120",
+      "degrees": [
+        244,
+        4
+      ]
+    },
+    {
+      "date": "2026-05-31T02:34",
+      "type": "exA",
+      "planets": [
+        "1",
+        "9"
+      ],
+      "aspect": "60",
+      "degrees": [
+        245,
+        305
+      ]
+    },
+    {
+      "date": "2026-05-31T11:45",
+      "type": "lunD",
+      "sign": 16
+    },
+    {
+      "date": "2026-05-31T16:21",
+      "type": "exA",
+      "planets": [
+        "1",
+        "6"
+      ],
+      "aspect": "120",
+      "degrees": [
+        252,
+        12
+      ]
+    },
+    {
+      "date": "2026-06-01T14:07",
+      "type": "lunD",
+      "sign": 17
+    }
+  ]
+}

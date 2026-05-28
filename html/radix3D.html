@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Радикс 3D</title>
+    <link rel="stylesheet" href="/css/fragments.css">
+    <!-- <link rel="stylesheet" href="/CSS/3D.css"> -->
+    <style>
+        body {
+            margin: 0;
+        }
+
+        #head {
+            height: 30px;
+        }
+
+        #gui {
+            position: absolute;
+            margin: 2px auto;
+            right: 5px;
+            z-index: 1;
+        }
+
+        #scene3d {
+            position: absolute;
+            top: 0;
+        }
+
+        .lil-gui {
+            --title-background-color: #777;
+            --background-color: #888;
+            --widget-color: #aaa;
+            --padding: 2px;
+        }
+
+        fieldset {
+            max-width: max-content;
+            min-width: 580px;
+            margin: 0;
+            position: absolute;
+            z-index: 2;
+            background-color: white;
+            padding: 0;
+            top: 37px;
+        }
+
+        footer {
+            position: absolute;
+        }
+    </style>
+    <script src="/js/start.js"></script>
+    <script src="/js/astro/chart2D.js"></script>
+    <script>
+        (() => {
+            let script = document.createElement('script');
+            script.setAttribute("src", '/js/astro2D.js?v=' + new Date().toJSON());
+            script.setAttribute("charset", 'utf-8');
+            document.head.append(script);
+            script = document.createElement('script');
+            script.setAttribute("src", '/js/components.js?v=' + new Date().toJSON());
+            script.setAttribute("charset", 'utf-8');
+            document.head.append(script);
+        })();
+    </script>
+    <script type="importmap">{
+        "imports": {
+            "three": "https://threejs.org/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.154.0/examples/jsm/",
+            "three/fonts/": "https://unpkg.com/three@0.154.0/examples/fonts/"
+        }
+    }</script>
+    <script src="https://cdn.jsdelivr.net/npm/lil-gui@0.19"></script>
+    <script>
+        const GUI = lil.GUI;
+    </script>
+</head>
+
+<body>
+    <header id="header" class="header"></header>
+    <div id="gui"></div>
+    <fieldset>
+        <legend name="db"
+            onclick="this.nextElementSibling.classList.toggle('none');this.textContent=((this.textContent=='📂')?'📁':'📂');"
+            title="Charts DB">📂</legend>
+        <astro-chartsdbview></astro-chartsdbview>
+        <label style="margin: 0 5px;">DB</label>
+    </fieldset>
+    <div id="scene3d"></div>
+    <div id="stats"></div>
+
+    <script>
+        let WIDTH = window.innerWidth;
+        let HEIGHT = window.innerHeight;
+        let update3D = false;
+        let setting3Ddef = {
+            'direction': true,
+            'rotateAll': 270 * Math.PI / 180,
+            'rotateCharts': 0 * Math.PI / 180,
+            'd3': false,
+            'depth': 1.6,
+            'zodiac': {
+                'opacity': 0.7,
+                'visible': true,
+                'color': { 0: '#590000', 1: '#592800', 2: '#003535', 3: '#004700', 4: '#590000', 5: '#592800', 6: '#003535', 7: '#004700', 8: '#590000', 9: '#592800', 10: '#003535', 11: '#004700' },
+                'size': { 'in': 0, 'out': 2, 'rSign': 1.5, 'segment': Math.PI / 6, 'symbol': 0.2 },
+                'sign': { 0: '&#x2648;&#xfe0e;', 1: '&#x2649;&#xfe0e;', 2: '&#x264a;&#xfe0e;', 3: '&#x264b;&#xfe0e;', 4: '&#x264c;&#xfe0e;', 5: '&#x264d;&#xfe0e;', 6: '&#x264e;&#xfe0e;', 7: '&#x264f;&#xfe0e;', 8: '&#x2650;&#xfe0e;', 9: '&#x2651;&#xfe0e;', 10: '&#x2652;&#xfe0e;', 11: '&#x2653;&#xfe0e;' },
+            },
+            'charts': {
+                'visible': true,
+                'cusps': {
+                    'visible': true,
+                    'sign': { 0: 'Asc', 1: 'II', 2: 'III', 3: 'IC', 4: 'V', 5: 'VI', 6: 'Ds', 7: 'VIII', 8: 'IX', 9: 'Mc', 10: 'XI', 11: 'XII' },
+                    'size': {
+                        'in': 0.25,
+                        'out': 1.75,
+                        'step': 0.02,
+                        'depth': 0.001,
+                        'symbol': 0.15,
+                    },
+                    'color': '#bbbbbb',
+
+                },
+                'planets': {
+                    'colorTypes': ['Zodiac', 'Chacras', 'Color'],
+                    'colorType': 'Zodiac',
+                    'color': '#000000',
+                    'colorTypesFont': ['Zodiac', 'Chacras', 'Color'],
+                    'colorTypeFont': 'Chacras',
+                    'colorFont': '#000000',
+                    'visible': true,
+                    'size': { 'r': 1, 'D3': true, 'symbol': 0.15, 'font': 0.15, 'depth': 0.001 },
+                    'chPosPl': {
+                        '0': { pos: 10, color: 'aqua' },
+                        1: { pos: 1, color: 'red' },
+                        2: { pos: 2, color: 'orange' },
+                        3: { pos: 3, color: 'orange' },
+                        4: { pos: 4, color: 'gold' },
+                        5: { pos: 5, color: 'gold' },
+                        6: { pos: 6, color: 'gold' },
+                        7: { pos: 7, color: 'green' },
+                        8: { pos: 8, color: 'green' },
+                        9: { pos: 9, color: 'green' },
+                        11: { pos: 0, color: 'gray' },
+                        12: { pos: -1, color: 'black' },
+                    }
+                },
+                aspects: {
+                    'visible': true,
+                },
+            },
+            yog: {
+                'visible': true,
+            },
+            chacras: {
+                'visible': true,
+            },
+            stats: {
+                'visible': false,
+            },
+        };
+        let setting3D = {};
+
+    </script>
+
+    <script>
+        let chart = {};
+        addEventListener("load", (event) => {
+            const $ = {
+                newChart: new Chart(),
+                searchCities: Source.def.searchCities,
+                findTZByLngLat: Source.def.findTZByLngLat,
+                sourceMap: Source.def.sourceMap,
+                getAstroData: Source.def.getAstroData,
+                getPlanetPeriod: Source.def.getPlanetPeriod,
+                getOffset: Source.def.getOffset,
+                localDateJSON: Source.def.localDateJSON,
+                plSign: $ad.plSignChort,
+                aspSign: $ad.aspSign,
+                colorAsp: $ad.colorAsp,
+                orbRadix: $ad.OrbRadix,
+                orbTpansit: $ad.OrbTpansit,
+                aspectRadix: $ad.aspectRadixArr,
+                zodiac: $ad.zodiac,
+                strZod: $ad.strZod,
+                hexToRGB: $ad.hexToRGB,
+                plStatistic: $ad.plStatistic,
+                dbSave: (data, key = 'radix3D') => { localStorage.setItem(key, JSON.stringify(data)) },
+                dbLoad: (key = 'radix3D') => { return JSON.parse(localStorage.getItem(key)) },
+            };
+            document.querySelector('astro-chartsdbview').source = $;
+            document.querySelector('astro-chartsdbview').value = $.dbLoad('db');
+            document.querySelector('astro-chartsdbview').addEventListener('change', (e) => {
+                if (e.detail.chart) {
+                    //                    document.querySelector('astro-chartsdbview').classList.add('none');
+                    if (e.detail.chart.out) {
+                        chart = e.detail.chart;
+                    } else {
+                        let chart = { in: e.detail.chart.in, set: $.newChart.set };
+                        chart.out = $.getAstroData(chart);
+                    }
+                    if (!chart.in.date) {
+                        chart.in.date = $.localDateJSON(chart.in.dateToJSON, chart.in.tzMin);
+                    };
+                    chart.out = $.getAstroData(chart);
+                    document.querySelector('fieldset label').textContent = chart.in.name + ' ' + new Date(chart.in.date).toLocaleString() + ' ' + chart.in.city;
+                    $.dbSave(document.querySelector('astro-chartsdbview').value, 'db')
+                    update();
+                };
+                if (e.detail.value) {
+                    $.dbSave(e.detail, 'db')
+                };
+            });
+            chart = $.newChart;
+            chart.out = $.getAstroData(chart);
+            document.querySelector('fieldset label').textContent = chart.in.name + ' ' + new Date(chart.in.dateToJSON).toLocaleString() + ' ' + chart.in.city;
+
+            const gui = new GUI({ container: document.getElementById('gui') });
+            gui.close();
+            window.gui = gui;
+            const save = ((obj, key) => {
+                localStorage.setItem(key, JSON.stringify(obj));
+            })
+            const load = ((obj = {}, key = '') => {
+                let obj1 = JSON.parse(localStorage.getItem('setting3D'));
+                return obj1;
+            })
+            setting3D = (load(setting3D, 'setting3D')) ? load(setting3D, 'setting3D') : setting3Ddef;
+            const update = () => {
+                update3D = true;
+                save(setting3D, 'setting3D');
+            }
+            let folder = gui.addFolder('Visible');
+            const visible = {
+                zodiac: setting3D.zodiac.visible,
+                planets: setting3D.charts.planets.visible,
+                aspects: setting3D.charts.aspects.visible,
+                houses: setting3D.charts.cusps.visible,
+                yog: setting3D.yog.visible,
+                chacras: setting3D.chacras.visible,
+                stats: setting3D.stats.visible,
+            }
+            folder.add(visible, 'zodiac').name('Zodiac').onChange(value => {
+                setting3D.zodiac.visible = value;
+                update();
+            });
+            folder.add(visible, 'planets').name('Planets').onChange(value => {
+                setting3D.charts.planets.visible = value;
+                if (!value) {
+                    visible.aspects = value;
+                    setting3D.charts.aspects.visible = value;
+                };
+                update();
+            });
+            folder.add(visible, 'aspects').name('Aspects')
+                .listen()
+                .onChange(value => {
+                    setting3D.charts.aspects.visible = value;
+                    update();
+                });
+            folder.add(visible, 'houses').name('Houses').onChange(value => {
+                setting3D.charts.cusps.visible = value;
+                update();
+            });
+            folder.add(visible, 'yog').name('Yog').onChange(value => {
+                setting3D.yog.visible = value;
+                update();
+            });
+            folder.add(visible, 'chacras').name('Chacras').onChange(value => {
+                setting3D.chacras.visible = value;
+                update();
+            });
+            folder.add(visible, 'stats').name('Stats').onChange(value => {
+                setting3D.stats.visible = value;
+                document.querySelector('#stats').style.display = (value) ? 'flex' : 'none';
+            });
+            folder.close();
+            folder = gui.addFolder('Color');
+            folder.close();
+            const colorZodiac = folder.addFolder('Zodiac');
+            for (const [key, value] of Object.entries(setting3D.zodiac.color)) {
+                colorZodiac.addColor(setting3D.zodiac.color, String(key))
+                    .name(setting3D.zodiac.sign[key])
+                    .listen()
+                    .onChange(value => {
+                        setting3D.zodiac.color[key] = value;
+                        update();
+                    })
+            };
+            colorZodiac.add({ 'opacity': setting3D.zodiac.opacity }, 'opacity', 0, 1, 0.01).name('Opacity')
+                .onChange(value => {
+                    setting3D.zodiac.opacity = value;
+                    update();
+                });
+            colorZodiac.close();
+            const colorPlanetsFolder = folder.addFolder('Planets');
+            const colorPlanetsType = colorPlanetsFolder.add({ type: setting3D.charts.planets.colorType }, 'type', setting3D.charts.planets.colorTypes).name('Type Color');
+            const colorPlanets = colorPlanetsFolder.addColor({ color: setting3D.charts.planets.color }, 'color').name('Color').onChange(value => {
+                setting3D.charts.planets.color = value;
+                update();
+            });
+            colorPlanetsType.onChange(value => {
+                setting3D.charts.planets.colorType = value;
+                colorPlanets.domElement.style.display = (value === 'Color') ? 'flex' : 'none';;
+                update();
+            });
+            const colorPlanetsTypeFont = colorPlanetsFolder.add({ type: setting3D.charts.planets.colorTypeFont }, 'type', setting3D.charts.planets.colorTypesFont).name('Font Type Color');
+            const colorPlanetsFont = colorPlanetsFolder.addColor({ color: setting3D.charts.planets.colorFont }, 'color').name('Font Color').onChange(value => {
+                setting3D.charts.planets.colorFont = value;
+                update();
+            });
+            colorPlanetsTypeFont.onChange(value => {
+                setting3D.charts.planets.colorTypeFont = value;
+                colorPlanetsFont.domElement.style.display = (value === 'Color') ? 'flex' : 'none';;
+                update();
+            });
+            colorPlanets.domElement.style.display = (setting3D.charts.planets.colorType === 'Color') ? 'flex' : 'none';;
+            colorPlanetsFont.domElement.style.display = (setting3D.charts.planets.colorTypeFont === 'Color') ? 'flex' : 'none';;
+            colorPlanetsFolder.close();
+
+            const colorHouses = folder.addFolder('Houses');
+            colorHouses.addColor({ color: setting3D.charts.cusps.color }, 'color').name('Color').onChange(value => {
+                setting3D.charts.cusps.color = value;
+                update();
+            });
+            colorHouses.close();
+            folder = gui.addFolder('Size');
+            folder.close();
+            const sizeZodiac = folder.addFolder('Zodiac');
+            sizeZodiac.add({ inCircle: setting3D.zodiac.size.in }, 'inCircle', 0, 2, 0.1)
+                .name('in Circle')
+                .onChange(value => {
+                    setting3D.zodiac.size.in = value;
+                    update();
+                });
+            sizeZodiac.add({ outCircle: setting3D.zodiac.size.out }, 'outCircle', 0, 2, 0.1)
+                .name('out Circle')
+                .onChange(value => {
+                    setting3D.zodiac.size.out = value;
+                    update();
+                });
+            sizeZodiac.close();
+            const sizeHouses = folder.addFolder('Houses');
+            sizeHouses.add({ inCircle: setting3D.charts.cusps.size.in }, 'inCircle', setting3D.zodiac.size.in, setting3D.charts.cusps.size.out, 0.1)
+                .name('in Circle')
+                .listen()
+                .onChange(value => {
+                    setting3D.charts.cusps.size.in = value;
+                    update();
+                }
+                );
+            sizeHouses.add({ outCircle: setting3D.charts.cusps.size.out }, 'outCircle', setting3D.charts.cusps.size.in, 2, 0.1)
+                .name('out Circle')
+                .listen()
+                .onChange(value => {
+                    setting3D.charts.cusps.size.out = value;
+                    update();
+                });
+            sizeHouses.close();
+            const sizePlanets = folder.addFolder('Planets');
+            sizePlanets.add({ circle: setting3D.charts.planets.size.r }, 'circle', setting3D.charts.cusps.size.in, setting3D.charts.cusps.size.out, 0.1)
+                .name('Circle')
+                .listen()
+                .onChange(value => {
+                    setting3D.charts.planets.size.r = value;
+                    update();
+                });
+            sizePlanets.add({ symbol: setting3D.charts.planets.size.symbol }, 'symbol', 0.01, 0.5, 0.01)
+                .name('Symbol')
+                .listen()
+                .onChange(value => {
+                    setting3D.charts.planets.size.symbol = value;
+                    update();
+                });
+            sizePlanets.add({ font: setting3D.charts.planets.size.font }, 'font', 0.01, 0.5, 0.01)
+                .name('Font')
+                .listen()
+                .onChange(value => {
+                    setting3D.charts.planets.size.font = value;
+                    update();
+                });
+            sizePlanets.close();
+            gui.add({ Charts3D: setting3D.d3 }, 'Charts3D')
+                .onChange(value => {
+                    setting3D.d3 = value;
+                    update();
+                });
+            gui.add({ Direction: setting3D.direction }, 'Direction')
+                .onChange(value => {
+                    setting3D.direction = value;
+                    update();
+                });
+            gui.add({ RotateAll: setting3D.rotateAll * 180 / Math.PI }, 'RotateAll', 0, 360, 30)
+                .onChange(value => {
+                    setting3D.rotateAll = value * Math.PI / 180;
+                    update();
+                });
+            gui.add({ RotateCharts: setting3D.rotateCharts * 180 / Math.PI }, 'RotateCharts', 0, 360, 15)
+                .onChange(value => {
+                    setting3D.rotateCharts = value * Math.PI / 180;
+                    update();
+                });
+            gui.add({ Depth: setting3D.depth }, 'Depth', 0.001, 2.5, 0.01)
+                .onChange(value => {
+                    setting3D.depth = value;
+                    update();
+                });
+            gui.add({ Planets3D: setting3D.charts.planets.size.D3 }, 'Planets3D')
+                .onChange(value => {
+                    setting3D.charts.planets.size.D3 = value;
+                    update();
+                });
+            gui.add({ Reset3D: () => { window.controls3d.reset(); } }, 'Reset3D');
+            gui.add({ Default: () => { setting3D = setting3Ddef; update(); } }, 'Default');
+            let script = document.createElement('script');
+            script.setAttribute("src", "/js/3d/scene.js");
+            script.setAttribute("type", "module");
+            script.setAttribute("charset", 'utf-8');
+            document.head.append(script);
+        });
+    </script>
+    <footer></footer>
+    <script type="module" src="/js/fragments/header.js"></script>
+    <script type="module" src="/js/fragments/footer.js"></script>
+    <script type="module">
+        document.querySelector('header select[name=nav]').value = window.location.pathname;
+    </script>
+
+</body>
+
+</html>

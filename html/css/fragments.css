@@ -1,0 +1,135 @@
+header {
+    font-family: monospace;
+    margin: 0;
+    z-index: 1;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 5px;
+    position: sticky;
+    top: 0;
+    text-align: center;
+    height: 30px;
+    width: 97vw;
+    background: #8900FF;
+    color: #fff;
+    justify-content: space-evenly;
+}
+
+header * {
+    border: 0;
+    font-size: 26px;
+    margin: 0;
+    background: #8900FF;
+    color: #fff;
+}
+
+span img {
+    vertical-align: top;
+    padding-top: 2px;
+}
+
+@media (max-width: 420px) {
+    .header * {
+        font-size: 16px;
+    }
+}
+
+header select {
+    border: 0;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+footer {
+    margin: 0;
+    padding: 5px;
+    position: static;
+    bottom: 0;
+    text-align: center;
+    height: 30px;
+    width: 97vw;
+    background: #8800ff;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+}
+
+select,
+select-checkbox,
+input[type=date],
+legend,
+input[type=datetime-local],
+input[type=button] {
+    cursor: pointer;
+}
+
+#default {
+    cursor: pointer;
+}
+
+.modalbg {
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    min-width: -webkit-fill-available;
+    height: 100vh;
+    overflow: auto;
+    background-color: rgba(255, 255, 255, 0.2);
+    transition: 0.5s all;
+    pointer-events: all;
+}
+
+.modal-default {
+    position: fixed;
+    top: 50vh;
+    left: 50vw;
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+    min-width: max-content;
+    min-height: max-content;
+    z-index: 99999999;
+    transition: transform 0.3s;
+    border: solid 1px;
+    background-color: rgba(255, 255, 255, 1);
+}
+
+.modal-default br {
+    content: "";
+    margin: 15px;
+    display: block;
+    margin-bottom: -18px;
+}
+.modal-default img.android {
+    margin: 0;
+    width: 22px;
+    vertical-align: middle;
+}
+
+iframe {
+    width: 97vw;
+    height: 100%;
+ }
+
+.none {
+    display: none;
+}
+.android {
+    white-space: nowrap;
+}
+img.android {
+        width: 16px;
+        vertical-align: middle;
+    /* font-family: monospace;
+    font-optical-sizing: auto;
+    color: #ddd;
+    fill: #969696;
+
+    -webkit-filter: grayscale(1) invert(1) contrast(4) brightness(2);
+    filter: grayscale(1) invert(1) contrast(4) brightness(2); */
+}

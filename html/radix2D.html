@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Радикс-гороскоп2D</title>
+    <script src="/js/start.js"></script>
+    <script src="/js/astro/chart2D.js"></script>
+    <script src="/js/plotly/pieRadix2d.js"></script>
+    <script>
+        (() => {
+            let script = document.createElement('script');
+            script.setAttribute("src", '/js/astro2D.js?v=' + new Date().toJSON());
+            script.setAttribute("charset", 'utf-8');
+            document.head.append(script);
+            script = document.createElement('script');
+            script.setAttribute("src", '/js/components.js?v=' + new Date().toJSON());
+            script.setAttribute("charset", 'utf-8');
+            document.head.append(script);
+        })();
+    </script>
+    <link rel="stylesheet" href="/css/fragments.css">
+    <link rel="stylesheet" href="/css/radix2D.css">
+    <style>
+        body {
+            font-family: monospace;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            height: 100%;
+            width: 100%;
+        }
+
+        body * {
+            margin: 0 auto;
+            border: 0;
+        }
+
+        .center {
+            min-width: max-content;
+            text-align: center;
+            position: relative;
+            margin: 5px;
+            padding: 5px;
+            top: 0;
+            left: 0;
+            min-height: 100%;
+            height: auto !important;
+            height: 100%;
+            padding-bottom: 40px;
+        }
+
+        footer {
+            margin-top: -40px;
+            position: relative;
+        }
+    </style>
+</head>
+
+<body>
+    <header id="header" class="header"></header>
+    <div class="center">
+        <div class="work">
+            <div class="grid" style="display: none;">
+                <label>Locale for: <input name="dateStart" type="datetime-local"></label>
+                <label>to: <input name="dateEnd" type="date"></label>
+                <label>step:
+                    <select name="step"
+                        title="Warning! Choosing a small value can greatly increase computation time and slow down the program.">
+                        <option value="1">1 min</option>
+                        <option value="30">30 min</option>
+                        <option value="60">1 hour</option>
+                        <option value="720">12 h</option>
+                        <option value="1440" selected>1 day</option>
+                        <option value="43830">1 month</option>
+                        <option value="262980">½ year</option>
+                    </select></label>
+                <input class="calcAstro" name="button" value="▶" type="button">
+                <select-checkbox id="planets"></select-checkbox>
+                <select-checkbox id="aspects"></select-checkbox>
+                <label>type:
+                    <select name="type">
+                        <option value="horo" selected>horoscop</option>
+                        <option value="cosmo">cosmogamma</option>
+                        <option value="transit">transit</option>
+                        <option value="solar">solar</option>
+                        <option value="lunar">lunar</option>
+                    </select></label>
+            </div>
+            <fieldset>
+                <legend name="db"
+                    onclick="this.nextElementSibling.classList.toggle('none');this.textContent=((this.textContent=='📂')?'📁':'📂');"
+                    title="Charts DB">📂</legend>
+                <astro-chartsdbview class="none"></astro-chartsdbview>
+                <label style="margin: 0 5px;">DB</label>
+            </fieldset>
+            <div id="drawChart">
+                <h3>Идет загрузка астропроцессора ...</h3>
+            </div>
+        </div>
+    </div>
+    <script>
+        addEventListener("load", (event) => {
+            const $ = {
+                newChart: new Chart(),
+                searchCities: Source.net.searchCities,
+                findTZByLngLat: Source.def.findTZByLngLat,
+                sourceMap: Source.def.sourceMap,
+                getAstroData: Source.def.getAstroData,
+                getPlanetPeriod: Source.def.getPlanetPeriod,
+                getSolar: Source.def.getDateSolar,
+                getLunar: Source.def.getDateLunar,
+                getOffset: Source.def.getOffset,
+                localDateJSON: Source.def.localDateJSON,
+                plSign: $ad.plSignChort,
+                aspSign: $ad.aspSign,
+                colorAsp: $ad.colorAsp,
+                orbRadix: $ad.OrbRadix,
+                orbTpansit: $ad.OrbTpansit,
+                aspectRadix: $ad.aspectRadixArr,
+                zodiac: $ad.zodiac,
+                strZod: $ad.strZod,
+                houseName: $ad.HouseName,
+                hexToRGB: $ad.hexToRGB,
+                plStatistic: $ad.plStatistic,
+                dbSave: (data, key = 'radix2D') => { localStorage.setItem(key, JSON.stringify(data)) },
+                dbLoad: (key = 'radix2D') => { return JSON.parse(localStorage.getItem(key)) },
+            };
+
+            let defA3D = $.dbLoad('defA3D');
+            let radix2D = {
+                planets: defA3D.planets,
+                aspects: defA3D.aspects,
+                tz: defA3D.tz,
+                type: defA3D.type,
+                gmtMin: defA3D.gmtMin,
+                locale: defA3D.locale,
+                houses: defA3D.houses,
+                rotate: defA3D.rotate,
+                direction: defA3D.direction,
+                city: defA3D.city,
+                latitude: defA3D.latitude,
+                longitude: defA3D.longitude,
+                chart: new Chart,
+            };
+            if ($.dbLoad()) {
+                const c = $.dbLoad();
+                radix2D.planets = c.planets || radix2D.planets;
+                radix2D.aspects = c.aspects || radix2D.aspects;
+                radix2D.type = c.type || radix2D.type;
+                radix2D.tz = c.tz || radix2D.tz;
+                radix2D.gmtMin = c.gmtMin || radix2D.gmtMin;
+                radix2D.locale = c.locale || radix2D.locale;
+                radix2D.houses = c.houses || radix2D.houses;
+                radix2D.rotate = c.rotate || radix2D.rotate;
+//                radix2D.chart = c.chart || radix2D.chart;
+                radix2D.chart = radix2D.chart;
+                radix2D.direction = c.direction || radix2D.direction;
+                radix2D.city = c.city || radix2D.city;
+                radix2D.latitude = c.latitude;
+                radix2D.longitude = c.longitude;
+            };
+
+            document.querySelector(".grid #planets").obj = $.plSign;
+            document.querySelector(".grid #planets").value = radix2D.planets;
+            document.querySelector(".grid #planets").name = Array.from(radix2D.planets, (el) => $.plSign[el]);
+            if (document.querySelector(".grid #planets").value.length == 0) {
+                document.querySelector(".grid #planets").name = 'Select planets';
+            }
+            document.querySelector(".grid #planets").addEventListener("change", (e) => {
+                radix2D.planets = e.target.value;
+                e.target.name = Array.from(radix2D.planets, (el) => $.plSign[el]);
+                if (e.target.value.length == 0) {
+                    e.target.name = 'Select planets';
+                };
+                document.dispatchEvent(new Event("change", { bubbles: true, cancelable: false }));
+            });
+            document.querySelector(".grid #aspects").obj = $.aspSign;
+            document.querySelector(".grid #aspects").value = radix2D.aspects;
+            document.querySelector(".grid #aspects").name = Array.from(radix2D.aspects, (el) => $.aspSign[el]);
+            if (document.querySelector(".grid #aspects").value.length == 0) {
+                document.querySelector(".grid #aspects").name = 'Select aspects';
+            }
+            document.querySelector(".grid #aspects").addEventListener("change", (e) => {
+                radix2D.aspects = e.target.value;
+                e.target.name = Array.from(radix2D.aspects, (el) => $.aspSign[el]);
+                if (e.target.value.length == 0) {
+                    e.target.name = 'Select aspects';
+                };
+                document.dispatchEvent(new Event("change", { bubbles: true, cancelable: false }));
+            });
+            document.querySelector("[name=type]").value = radix2D.type;
+            document.querySelector("[name=type]").addEventListener("change", (e) => {
+                radix2D.type = e.target.value;
+            });
+            const newDateLocal = () => {
+                const dt = new Date();
+                //dt.setMinutes(dt.getMinutes() - dt.getTimezoneOffset());
+                return dt.toISOString().slice(0, 16);
+            };
+            const endDateLocal = (valueAsNumber, stepMin = (1440 * 365.25)) => {
+                const dt = new Date(valueAsNumber);
+                dt.setMinutes(dt.getMinutes() + stepMin);
+                return dt.toISOString().slice(0, 10);
+            };
+            document.querySelector("[name=dateStart]").value = newDateLocal();
+            radix2D.dateStart = document.querySelector("[name=dateStart]").valueAsNumber;
+            document.querySelector("[name=dateEnd]").value = endDateLocal(radix2D.dateStart);
+            radix2D.dateEnd = document.querySelector("[name=dateEnd]").valueAsNumber;
+            radix2D.stepMin = Number(document.querySelector("[name=step]").value);
+            if (!$.dbLoad()) {
+                radix2D.planets = document.querySelector(".grid #planets").value;
+                radix2D.aspects = document.querySelector(".grid #aspects").value;
+            };
+            document.querySelector('astro-chartsdbview').source = $;
+            document.querySelector('astro-chartsdbview').value = $.dbLoad('db');
+            document.querySelector('astro-chartsdbview').addEventListener('change', (e) => {
+                if (e.detail.chart) {
+                    let chart = e.detail.chart;
+                    if (!chart.set) {
+                        chart = { in: e.detail.chart.in, set: $.newChart.set };
+                    }
+                    if (!chart.in.date) {
+                        chart.in.date = $.localDateJSON(chart.in.dateToJSON, chart.in.tzMin);
+                    };
+                    chart.out = $.getAstroData(chart);
+                    radix2D.chart = chart;
+                };
+                document.querySelector('fieldset label').textContent = radix2D.chart.in.name + ' ' + new Date(radix2D.chart.in.date).toLocaleString() + ' ' + radix2D.chart.in.city;
+                $.dbSave(document.querySelector('astro-chartsdbview').value,'db');
+                console.log(document.querySelector('astro-chartsdbview').value);
+                document.dispatchEvent(new Event("change", { bubbles: true, cancelable: false }));
+            });
+            const render = (radix2D) => {
+                switch (radix2D.type) {
+                    case 'horo':
+                        Promise.resolve($.getAstroData(radix2D.chart))
+                            .then(res => {
+                                radix2D.chart.out = res;
+                                horoscopGraph('drawChart', radix2D);
+                            });
+                        break;
+                    default:
+                        Promise.resolve(radix2D.chart.out)
+                            .then(res => {
+                                radix2D.chart.out = res;
+                            });
+                        break;
+                }
+
+
+            }
+            chart = $.newChart;
+            chart.out = $.getAstroData(chart);
+            document.querySelector('fieldset label').textContent = chart.in.name + ' ' + new Date(chart.in.dateToJSON).toLocaleString() + ' ' + chart.in.city;
+            document.querySelector('astro-chartsdbview').source = $;
+            document.querySelector('astro-chartsdbview').value = $.dbLoad('db');
+            document.addEventListener('change', (e) => {
+                $.dbSave(radix2D);
+                render(radix2D);
+            })
+            render(radix2D);
+        });
+    </script>
+    <footer></footer>
+    <script type="module" src="/js/fragments/header.js"></script>
+    <script type="module" src="/js/fragments/footer.js"></script>
+    <script type="module">
+        document.querySelector('header select[name=nav]').value = window.location.pathname;
+    </script>
+
+</body>
+
+</html>

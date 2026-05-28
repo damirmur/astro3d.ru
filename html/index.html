@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="description"
+        content="Эфемериды, Астрологический период, Астрологическая карта, Астрологический график, Астрология, Астрология 3Д, Астрология 3D, Гороскоп онлайн, Лунный календарь 2023,Лунный календарь 2024, гороскоп 2023, гороскоп 2024, Астрокалендарь 2023, Астрокалендарь 2024, Астрокалендарь онлайн, Лунный календарь 2023,Лунный календарь 2024,Astrocalendar 2023,Astrocalendar 2024, Astrocalendar onlineEphemeris, Astrological chart, Astrology, Astrology 3D, Astrology 3D, Horoscope online, Lunar calendar 2023, Lunar calendar 2024, horoscope 2023, horoscope 2024, Astrological period">
+    <meta name="author" content="astro3D.ru">
+    <title>Astro3D.RU</title>
+    <script type="module" src="./js/start.js"></script>
+    <script src="/js/web_statisic/google.js"></script>
+    <script src="/js/web_statisic/yandex.js"></script>
+    <link rel="stylesheet" href="/css/fragments.css">
+    <link rel="stylesheet" href="/css/index.css">
+    <style>
+        #warning {
+            display: block;
+            width: 94vw;
+            height: fit-content;
+            text-align: center;
+            padding: 15px;
+            border: 3px solid #4D008F;
+            border-radius: 10px;
+            color: darkslategray;
+            position: sticky;
+            /* top: 0; */
+            right: 0;
+            bottom: 0;
+            left: 0;
+            margin: auto;
+        }
+
+        #warning h2 {
+            text-align: right;
+            cursor: pointer;
+
+        }
+
+        /* 
+        #main:target {
+            display: block;
+        } */
+    </style>
+</head>
+
+<body>
+    <header id="header" class="header"></header>
+    <div class="main">
+        <div class="center">
+            <h1>Астрологический сайт.</h1>
+            <h2>Астрология 2D и 3D on-line.</h2>
+            <h3>Сайт с интерактивными астрологическими картами графиками астрологических периодов. Предпочтение западной
+                астрологии и методам транзитов</h3>
+        </div>
+        <div class="grid">
+            <a href="/calendar2D.html">
+                <article>
+                    <p>Астрокалендарь он-лайн на месяц</p>
+                    <img src="/img/article/calendar2d.png" style="width:20vw; height:20vw;">
+                    <p>Можно сохранять картинку, выбирать планеты, аспекты, временную зону.</p>
+                    <br>
+                </article>
+            </a>
+            <a href="/pie2D.html">
+                <article>
+                    <p>Круговая карта движения планет.</p>
+                    <img src="/img/article/pie2d.png" style="width:20vw; height:20vw;">
+                    <p>Интерактивно.</p>
+                    <br>
+                    <br>
+
+                </article>
+            </a>
+            <a href="/rect2D.html">
+                <article>
+                    <p>График транзитов.</p>
+                    <img src="/img/article/rect2d.png" style="width:20vw; height:20vw;">
+                    <p>Подключены курсы металлов и валют с сайта CBR.RU.</p>
+                    <p>Можно загрузить данные из файла формата csv.</p>
+                    <p>Интерактивно.</p>
+                </article>
+            </a>
+            <a href="/radix3D.html">
+                <article>
+                    <p>Астрологическая карта 3D. Черновик</p>
+                    <img src="/img/article/3d.png" style="width:20vw; height:20vw;">
+                    <p>С&nbsp;чакрами. Работает в Windows, остальное не гарантируется.</p>
+                </article>
+            </a>
+        </div>
+    </div>
+    <div id="warning">
+        <h2>X</h2>
+        <h3>Внимание!!! Сайт в активной разработке, поэтому многое появится позже, а
+            что-то
+            изменится.
+            Сайт предоставляет астропроцессор, большинство расчетов происходит в браузере, что возлагает нагрузку на
+            устройство пользователя. Рекомендуется работа на компьютере или ноутбуке. Гарантируется работа на
+            Windows
+            последних версий, в браузере Chrome. В связи со слабыми характеристиками смартфонов и планшетов,
+            комфортная
+            работа не гарантируется. Некоторые интерактивные графики заменены картинками, для решения этих проблем
+            позже
+            будут разработаны мобильные приложения.
+            Подписывайтесь на новости в - <a href="https://t.me/astro3dru" target="_blank">Telegram</a>
+        </h3>
+    </div>
+    <footer></footer>
+    <script src="/js/fragments/header.js"></script>
+    <script src="/js/fragments/footer.js"></script>
+    <script>
+        function getCookie(name) {
+            let matches = document.cookie.match(new RegExp(
+                "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
+            ));
+            return matches ? decodeURIComponent(matches[1]) : undefined;
+        }
+        if(getCookie('warning')=='1'){
+            document.querySelector("#warning").style.display = 'none';
+
+        }
+        document.querySelector("#warning h2").addEventListener("click", (e) => {
+            document.querySelector("#warning").style.display = 'none';
+            document.cookie = "warning=1;";
+        });
+        document.querySelector('header select[name=nav]').value = '/';
+    </script>
+
+</body>
+
+
+</html>

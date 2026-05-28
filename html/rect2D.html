@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Эфемериды, Астрологический период, Астрологическая карта, Астрологический график, Астрология, Астрология 3Д, Астрология 3D, Гороскоп онлайн, Лунный календарь 2023,Лунный календарь 2024, гороскоп 2023, гороскоп 2024, Астрокалендарь 2023, Астрокалендарь 2024, Астрокалендарь онлайн, Лунный календарь 2023,Лунный календарь 2024,Astrocalendar 2023,Astrocalendar 2024, Astrocalendar onlineEphemeris, Astrological chart, Astrology, Astrology 3D, Astrology 3D, Horoscope online, Lunar calendar 2023, Lunar calendar 2024, horoscope 2023, horoscope 2024, Astrological period">
+    <meta name="author" content="astro3D.ru">
+    <title>График-период 2D&CRB.RU</title>
+    <script>
+        (() => {
+            let script = document.createElement('script');
+            script.setAttribute("src", '/js/astro2D.js?v=' + new Date().toJSON());
+            script.setAttribute("charset", 'utf-8');
+            document.head.append(script);
+        })();
+    </script>
+    <script type="module" src="/js/start.js"></script>
+    <script src="/js/lib/papaparse.min.js"></script>
+    <link rel="stylesheet" href="/css/fragments.css">
+    <link rel="stylesheet" href="/css/rect2D.css">
+</head>
+
+<body>
+    <header class="header"></header>
+    <div class="center">
+        <div class="work">
+            <div class="grid">
+                <label>UTC for: <input name="dateStart" type="datetime-local"></label>
+                <label>to: <input name="dateEnd" type="date"></label>
+                <label>step:
+                    <select name="step"
+                        title="Warning! Choosing a small value can greatly increase computation time and slow down the program.">
+                        <option value="1">1 min</option>
+                        <option value="30">30 min</option>
+                        <option value="60">1 hour</option>
+                        <option value="720" selected>12 h</option>
+                        <option value="1440">1 day</option>
+                        <option value="43830">1 month</option>
+                        <option value="262980">½ year</option>
+                    </select></label>
+                <input class="calc" name="button" value="▶" type="button">
+                <select-checkbox id="planets"></select-checkbox>
+                <select-checkbox id="aspects"></select-checkbox>
+                <select name="ephFlag">
+                    <option value="260" selected>Topo</option>
+                    <option value="268">Gelio</option>
+                </select>
+            </div>
+            <fieldset>
+                <legend
+                    onclick="this.nextElementSibling.classList.toggle('none');this.textContent=((this.textContent=='📂CBR.RU')?'📁CBR.RU':'📂CBR.RU');"
+                    title="Courses metall & money">📁CBR.RU</legend>
+                <div class="grid none">
+                    <label><a href="https://www.cbr.ru/" target="_blank">cbr.ru : </a></label>
+                    <select-checkbox id="metall"></select-checkbox>
+                    <select-checkbox id="money"></select-checkbox>
+                    <a href="/course.html" target="_blank">Statistic</a>
+                </div>
+            </fieldset>
+            <fieldset>
+                <legend
+                    onclick="this.nextElementSibling.classList.toggle('none');this.textContent=((this.textContent=='📂file.csv')?'📁file.csv':'📂file.csv');"
+                    title="Load data from file.csv">📁file.scv</legend>
+                <div class="grid none">
+                    <label><b>CSV :</b></label>
+                    <input type="file" id='file' onclick='{this.value=""}' accept=".csv">
+                    <label>Format <select id="fDateCSV">
+                            <option value="dmy">"dd.mm.yyyy"</option>
+                            <option value="mdy">"mm.dd.yyyy"</option>
+                            <option value="ymd">"yyyy.mm.dd"</option>
+                            <option value="dmyhm">"dd.mm.yyyy hh:mm"</option>
+                            <option value="mdyhm">"mm.dd.yyyy hh:mm"</option>
+                            <option value="ymdhm">"yyyy.mm.dd hh:mm"</option>
+                        </select></label>
+                    <label title="Warning! No header for solid columns only"> <input type="checkbox" id='header' checked
+                            title="Warning! No header for solid columns only" />1 line - header!</label>
+                    <label>Display</label><select-checkbox id='mappingCSV'></select-checkbox>
+                    <a href="/other/list1.csv">example.csv</a>
+                </div>
+            </fieldset>
+
+        </div>
+        <div id="rect">
+            <h3>Идет загрузка астропроцессора ...</h3>
+        </div>
+    </div>
+    </div>
+    <script>addEventListener("load", (event) => {
+            const $ = {
+                getPlanetPeriod: Source.def.getPlanetPeriod,
+                getAstroData: Source.def.getAstroData,
+                getOffset: Source.def.getOffset,
+                localDateJSON: Source.def.localDateJSON,
+                p: JSON.parse(localStorage.getItem('p')),
+                strZod: $ad.strZod,
+                zodSign: $ad.zodSign,
+                plSign: $ad.plSignChort,
+                aspSign: $ad.aspSign,
+                colorAsp: $ad.colorAsp,
+                OrbRadix: $ad.OrbRadix,
+                aspectsPeriod: $ad.aspectsPeriod,
+                dbSave: (data, key = 'setRect2D') => { localStorage.setItem(key, JSON.stringify(data)) },
+                dbLoad: (key = 'setRect2D') => { return JSON.parse(localStorage.getItem(key)) },
+                metall: { 1: 'Au', 2: 'Ag', 3: 'Pt', 4: 'Pd' },// [, 'Gold', 'Silver', 'Platinum', 'Palladium'];// [, 'Золото', 'Серебро', 'Платина', 'Палладий'];
+                money: { "R01239": '€', "R01375": 'Ұ', "R01235": '$', "R01035": '£', 'R01270': '₹', 'R01700J': '₺', "R01820": '¥' },
+                metallURL: 'https://www.cbr.ru/scripts/xml_metall.asp?date_req1=',
+                valutaUrl: 'https://www.cbr.ru/scripts/XML_dynamic.asp?date_req1=',
+                mapping: {
+                    'markers': 'markers',
+                    'lines': 'lines',
+                    'text': 'text'
+                },
+                dt: $ad.formatStringToDate,
+                plotly: { mode: { value: ['markers', 'lines', 'text'], text: 'markers+lines+text' } },
+            };
+            let setRect2D = {
+                stepMin: '720',
+                planets: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12],
+                aspects: [0, 60, 90, 120, 180],
+                metall: [],// [, 'Gold', 'Silver', 'Platinum', 'Palladium']|| [, 'Золото', 'Серебро', 'Платина', 'Палладий'],
+                money: [],
+                flag: '260' //260|268 =((Swe.SEFLG_SPEED | Swe.SEFLG_MOSEPH))|((Swe.SEFLG_SPEED | Swe.SEFLG_MOSEPH|Swe.SEFLG_HELCTR ))
+            }
+            if ($.dbLoad()) {
+                const saved = $.dbLoad();
+                setRect2D.stepMin = saved.stepMin || '720';
+                setRect2D.planets = saved.planets || [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12];
+                setRect2D.aspects = saved.aspects || [0, 60, 90, 120, 180];
+                setRect2D.metall = saved.metall || [];
+                setRect2D.money = saved.money || [];
+                setRect2D.flag = saved.flag || '260';
+            }
+
+            const newDateLocal = () => {
+                const dt = new Date();
+                dt.setMinutes(dt.getMinutes() - dt.getTimezoneOffset());
+                return dt.toISOString().slice(0, 10);
+            };
+            const endDateLocal = (valueAsNumber, stepMin = -(1440 * 365)) => {
+                const dt = new Date(valueAsNumber);
+                dt.setMinutes(dt.getMinutes() + stepMin);
+                dt.setUTCHours(0, 0, 0, 0);
+                return dt.toISOString().slice(0, 16);
+            };
+            $.valutaUrl = $.p + $.valutaUrl;
+            $.metallURL = $.p + $.metallURL;
+
+            document.querySelector("[name=dateEnd]").value = newDateLocal();
+            setRect2D.dateEnd = document.querySelector("[name=dateEnd]").valueAsNumber;
+            document.querySelector("[name=dateStart]").value = endDateLocal(setRect2D.dateEnd);
+            setRect2D.dateStart = document.querySelector("[name=dateStart]").valueAsNumber;
+            document.querySelector("[name=step]").value = setRect2D.stepMin;
+            document.querySelector("[name=ephFlag]").value = setRect2D.flag;
+            document.querySelector(".grid #planets").obj = $.plSign;
+            document.querySelector(".grid #planets").value = setRect2D.planets;
+            document.querySelector(".grid #planets").name = Array.from(setRect2D.planets, (el) => $.plSign[el]);
+            if (document.querySelector(".grid #planets").value.length == 0) {
+                document.querySelector(".grid #planets").name = 'Select planets';
+            }
+            document.querySelector(".grid #planets").addEventListener("change", (e) => {
+                setRect2D.planets = e.target.value;
+                document.querySelector(".grid #aspects").disabled = (e.target.value.length < 2) ? true : false;
+                e.target.name = Array.from(setRect2D.planets, (el) => $.plSign[el]);
+                if (e.target.value.length == 0) {
+                    e.target.name = 'Select planets';
+                }
+            });
+            document.querySelector(".grid #aspects").obj = $.aspSign;
+            document.querySelector(".grid #aspects").value = setRect2D.aspects;
+            document.querySelector(".grid #aspects").name = Array.from(setRect2D.aspects, (el) => $.aspSign[el]);
+            if (document.querySelector(".grid #aspects").value.length == 0) {
+                document.querySelector(".grid #aspects").name = 'Select aspects';
+            }
+            document.querySelector(".grid #aspects").addEventListener("change", (e) => {
+                setRect2D.aspects = e.target.value;
+                e.target.name = Array.from(setRect2D.aspects, (el) => $.aspSign[el]);
+                if (e.target.value.length == 0) {
+                    e.target.name = 'Select aspects';
+                }
+            });
+            document.querySelector(".grid #metall").obj = $.metall;
+            document.querySelector(".grid #metall").value = setRect2D.metall;
+            document.querySelector(".grid #metall").name = Array.from(setRect2D.metall, (el) => $.metall[el]);
+            if (document.querySelector(".grid #metall").value.length == 0) {
+                document.querySelector(".grid #metall").name = 'Select metall';
+            }
+            document.querySelector(".grid #metall").addEventListener("change", (e) => {
+                setRect2D.metall = e.target.value;
+                e.target.name = Array.from(setRect2D.metall, (el) => $.metall[el]);
+                if (e.target.value.length == 0) {
+                    e.target.name = 'Select metall';
+                }
+            });
+            document.querySelector(".grid #money").obj = $.money;
+            document.querySelector(".grid #money").value = setRect2D.money;
+            document.querySelector(".grid #money").name = Array.from(setRect2D.money, (el) => $.money[el]);
+            if (document.querySelector(".grid #money").value.length == 0) {
+                document.querySelector(".grid #money").name = 'Select money';
+            }
+            document.querySelector(".grid #money").addEventListener("change", (e) => {
+                setRect2D.money = e.target.value;
+                e.target.name = Array.from(setRect2D.money, (el) => $.money[el]);
+                if (e.target.value.length == 0) {
+                    e.target.name = 'Select money';
+                }
+            });
+            document.querySelector(".calc").addEventListener('click', (e) => {
+                e.target.value = '⭕';
+                setRect2D.dateStart = document.querySelector("[name=dateStart]").valueAsNumber;
+                setRect2D.dateEnd = document.querySelector("[name=dateEnd]").valueAsNumber;
+                setRect2D.stepMin = document.querySelector("[name=step]").value;
+                setRect2D.flag = document.querySelector("[name=ephFlag]").value;
+                setRect2D.aspects = document.querySelector(".grid #aspects").value;
+                setRect2D.planets = document.querySelector(".grid #planets").value;
+                setRect2D['out'] = {};
+                $.dbSave(setRect2D);
+                draw(setRect2D);
+            });
+            document.querySelector('#mappingCSV').obj = $.mapping;
+            document.querySelector('#mappingCSV').value = $.plotly.mode.value;
+            document.querySelector('#mappingCSV').name = $.plotly.mode.value;
+            document.querySelector('#mappingCSV').addEventListener("change", (e) => {
+                e.target.name = e.target.value;
+                $.plotly.mode.value = e.target.value;
+                $.plotly.mode.text = e.target.value.toString().replaceAll(',', '+');
+                const csv = e.target.traces;
+                if ((csv) && (csv.length > 0)) {
+                    const update = { mode: $.plotly.mode.text };
+                    Plotly.restyle(HTML, update, csv);
+                }
+            });
+            document.querySelector(".grid #file").addEventListener("change", (e) => {
+                readCSV(e.target)
+            })
+
+            const plsPeriod = (period) => {
+                return new Promise((resolve, reject) => {
+                    resolve($.getPlanetPeriod(period, period.flag));
+                    reject(undefined);
+                });
+            };
+            const courseMetallCBR = (fromD, toD, metall = setRect2D.metall) => {
+                const fromDT = new Date(fromD).toLocaleDateString();
+                const toDT = new Date(toD).toLocaleDateString();
+                const metallisCBR = fetch($.metallURL + fromDT + '&date_req2=' + toDT)
+                    .then(response => response.text())
+                    .then(data => {
+                        const arrayTextRecord = data.match(/<Record(.*?)>(.*?)<\/Record>/gisd);
+                        const arrRecord = [];
+                        arrayTextRecord.forEach((r, i) => {
+                            const record = {};
+                            const [, code] = r.match(/Code="(.*?)"/);
+                            const [, date] = r.match(/Date="(.*?)"/);
+                            const [, sell] = r.match(/<Sell.*?>(.*?)<\/Sell>/);
+                            record.code = code;
+                            record.date = date;
+                            record.course = Number(sell.replace(',', '.'));
+                            arrRecord.push(record);
+                        });
+                        const obj = {};
+                        metall.forEach((c) => {
+                            obj[c] = [];
+                        })
+                        arrRecord.forEach((r) => {
+                            if (metall.includes(r.code))
+                                obj[r.code].push({ 'date': r.date, 'course': r.course });
+                        });
+                        console.log(obj);
+                        return obj;
+                    })
+                return metallisCBR;
+            };
+            const courseMoneyCBR = (fromD, toD, money = setRect2D.money) => {
+                const fromDT = new Date(fromD).toLocaleDateString();
+                const toDT = new Date(toD).toLocaleDateString();
+                const moneyObj = {};
+                const promiseAll = [];
+                money.forEach((id) => {
+                    let valutaCBR = fetch($.valutaUrl + fromDT + '&date_req2=' + toDT + '&VAL_NM_RQ=' + id)
+                        .then(response => response.text())
+                        .then(data => {
+                            const arrayTextRecord = data.match(/<Record(.*?)>(.*?)<\/Record>/gisd);
+                            const arrRecord = [];
+                            arrayTextRecord.forEach((r, i) => {
+                                const record = {};
+                                const [, date] = r.match(/Date="(.*?)"/);
+                                const [, course] = r.match(/<VunitRate.*?>(.*?)<\/VunitRate>/);//VunitRate//Nominal
+                                const [, nominal] = r.match(/<Nominal.*?>(.*?)<\/Nominal>/);//VunitRate//Nominal
+                                const [, value] = r.match(/<Value.*?>(.*?)<\/Value>/);//VunitRate//Nominal
+                                record.code = $.money[id];
+                                record.date = date;
+                                record.course = Number(course.replace(',', '.'));
+                                record.nominal = Number(nominal.replace(',', '.'));
+                                record.value = Number(value.replace(',', '.'));
+                                arrRecord.push(record);
+                            });
+                            moneyObj[$.money[id]] = [];
+                            arrRecord.forEach((r, i) => {
+                                moneyObj[$.money[id]].push({ 'date': r.date, 'course': r.course });
+                            });
+                            console.log(moneyObj);
+                            return moneyObj;
+                        });
+                    promiseAll.push(valutaCBR);
+                });
+                return Promise.all(promiseAll).then((res) => {
+                    return res[0]
+                });
+            };
+            const HTML = document.getElementById('rect');
+            HTML.textContent = ``;
+            Plotly.react(HTML, [], {
+                hovermode: 'closest',
+                hoverlabel: { bgcolor: 'rgba(255,255,255,0.5)' },
+                height: 600,
+                showlegend: true,
+                legend: {
+                    title: { text: '<b>Astro3D.ru</b>', font: { color: '#8900FF' } },
+                    x: 1.1,
+                    y: 1,
+                },
+                font: {
+                    family: 'monospace',
+                    size: 14,
+                },
+                margin: { t: 20, l: 20 },
+                hovermode: 'x unified',//'x unified',//false,'y'
+                xaxis: {
+                    anchor: 'x',
+                    visible: false,
+                    side: 'left',
+                },
+                yaxis: {
+                    anchor: 'y',
+                    autorange: true,
+                    autoshift: true,
+                    visible: false,
+                    side: 'left',
+                },
+                xaxis2: {
+                    anchor: 'x2',
+                    autoshift: true,
+                    autorange: true,
+                    overlaying: 'x',
+                    side: 'left',
+                },
+                yaxis2: {//metall
+                    position: 0.001,
+                    autoshift: true,
+                    autorange: true,
+                    overlaying: 'y',
+                    side: 'left',
+                    titlefont: { color: 'rgb(0, 0, 0)' },
+                    tickfont: { color: 'rgb(0, 0, 0)' },
+                },
+                yaxis3: {//planets
+                    position: 0,
+                    autoshift: true,
+                    tickvals: [15, 45, 75, 105, 135, 165, 195, 225, 255, 285, 315, 345],// [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
+                    ticktext: $.zodSign,
+                    titlefont: { color: 'rgb(148, 103, 189)' },
+                    tickfont: (android) ? { color: '#969696' } : { color: 'rgb(148, 103, 189)' },
+                    overlaying: 'y',
+                    side: 'left',
+                    gridwidth: 35,
+                    gridcolor: 'rgba(148, 103, 189,0.2)',
+                    layer: 'below traces',
+                    // dtick:30,
+                    // tick0:0,
+                },
+                yaxis4: {//money
+                    position: .999,
+                    autoshift: true,
+                    autorange: true,
+                    overlaying: 'y',
+                    side: 'right',
+                    titlefont: { color: 'rgb(0, 0, 0)' },
+                    tickfont: { color: 'rgb(0, 0, 0)' },
+                },
+                yaxis5: {//aspects
+                    position: 1,
+                    autoshift: true,
+                    autorange: 'reversed',
+                    titlefont: { color: 'rgb(148, 103, 189)' },
+                    tickfont: { color: 'rgb(148, 103, 189)' },
+                    overlaying: 'y',
+                    side: 'right',
+                },
+            });
+            const moneyTraces = (moneyObj) => {
+                const dt = (date) => {
+                    const [, d, m, y] = /(\d{2}).(\d{2}).(\d{4})/.exec(date);
+                    let outDate = new Date().setUTCFullYear(Number(y), Number(m) - 1, Number(d))
+                    outDate = new Date(outDate).setUTCHours(12, 0, 0, 0);
+                    return (new Date(outDate).toJSON())
+                };
+                moneyObj
+                    .then(valuta => {
+                        const data = [];
+                        Object.keys(valuta).forEach((c) => {
+                            data.push(
+                                {
+                                    name: c,
+                                    x: Array.from(valuta[c], (el) => dt(el.date)),
+                                    y: Array.from(valuta[c], (el) => el.course),
+                                    yaxis: 'y4',
+                                    xaxis: 'x2',
+                                    type: "scattergl",
+                                });
+                        })
+                        Plotly.addTraces(HTML, data);
+                    });
+            };
+            const metallTraces = (metallisObj) => {
+                metallisObj
+                    .then(metallis => {
+                        const dt = (date) => {
+                            const [, d, m, y] = /(\d{2}).(\d{2}).(\d{4})/.exec(date);
+                            return (new Date(new Date(0, 0, 0, 0, 0, 0).setUTCFullYear(Number(y), Number(m) - 1, Number(d))).toJSON())
+                        };
+                        const data = [];
+                        Object.keys(metallis).forEach((c) => {
+                            data.push(
+                                {
+                                    name: $.metall[Number(c)],
+                                    x: Array.from(metallis[c], (el) => dt(el.date)),
+                                    y: Array.from(metallis[c], (el) => el.course),
+                                    yaxis: ((Number(c) == 2) ? 'y4' : 'y2'),
+                                    xaxis: 'x2',
+                                    type: "scattergl",
+                                });
+                        })
+                        Plotly.addTraces(HTML, data);
+                    });
+            };
+            const aspectsTraces = (aspectsPeriod) => {
+                const data = [];
+                aspectsPeriod
+                    .then((traceAspectsPls) => {
+                        const tickvals = [];
+                        const ticktext = [];
+                        let r = 0;
+                        let traces = {};
+                        const traceAspects = traceAspectsPls['aspects'];
+                        for (const keyR in traceAspects) {
+                            for (const keyT in traceAspects[keyR]) {
+                                const arr = traceAspects[keyR][keyT];
+                                tickvals.push(r);
+                                ticktext.push($.plSign[keyR] + '.' + $.plSign[keyT]); //
+                                const text = arr.map((x) => (x.asp > -360) ? ($.plSign[keyR] + String(x.asp) + $.plSign[keyT]) : x);
+                                const pos = arr.map((x) => (x.asp > -360) ? r : x);
+                                const color = arr.map((x) => (x.asp > -360) ? $.colorAsp[x.asp] : x);
+                                traces[r] = { 'pos': pos, 'text': text, 'colors': color };
+                                data.push(
+                                    {
+                                        type: "scattergl",
+                                        mode: 'markers',
+                                        legendgroup: 'aspects',
+                                        name: 'aspects',
+                                        showlegend: false,
+                                        x: traceAspectsPls.date,
+                                        y: pos,
+                                        text: text,
+                                        hovertemplate: `<b>%{text}  %{x}</b><extra></extra>`,
+                                        hoverinfo: 'none',
+                                        marker: {
+                                            color: color,
+                                            size: 3,
+                                        },
+                                        xaxis: 'x2',
+                                        yaxis: 'y5',
+                                    });
+                                for (let i = 1; i < arr.length - 1; i++) {
+                                    if ((!arr[i].asp) && (arr[i].asp < 0)) { continue };
+                                    const current = Math.abs(arr[i].deg - arr[i].asp);
+                                    let previous = (arr[i - 1].asp) ? (Math.abs(arr[i - 1].deg - arr[i - 1].asp)) : 20;
+                                    let next = (arr[i + 1].asp) ? (Math.abs(arr[i + 1].deg - arr[i + 1].asp)) : 20;
+                                    if ((current < previous) && (current < next)) {
+                                        if (current < 0.5) {
+                                            data.push(
+                                                {
+                                                    type: "scattergl",
+                                                    mode: 'markers',
+                                                    name: 'aspects',
+                                                    showlegend: false,
+                                                    x: [traceAspectsPls.date[i]],
+                                                    y: [r],
+                                                    hoverinfo: 'none',
+                                                    marker: {
+                                                        color: $ad.colorAsp[arr[i].asp],
+                                                        size: 6,
+                                                    },
+                                                    xaxis: 'x2',
+                                                    yaxis: 'y5',
+                                                });
+                                        };
+                                    }
+                                };
+                                r = r + 1;
+                            };
+                        };
+                        HTML.layout.yaxis5.tickvals = tickvals;
+                        HTML.layout.yaxis5.ticktext = ticktext;
+                        Plotly.addTraces(HTML, data);
+                    });
+            };
+            const planetsTraces = (planetsPeriod) => {
+                const data = [];
+                planetsPeriod
+                    .then((plPeriod) => {
+                        plPeriod.planets.forEach((c) => {
+                            data.push(
+                                {
+                                    type: "scattergl",
+                                    mode: 'markers',
+                                    name: $.plSign[c],
+                                    x: plPeriod.out.date,
+                                    y: plPeriod.out.planets[c],
+                                    text: Array.from(plPeriod.out.planets[c], (el, i) => ($.plSign[c] + ': ' + $.strZod([plPeriod.out.planets[c][i], plPeriod.out.speed[c][i]]).text) + ` ` + plPeriod.out.speed[c][i].toFixed(2)),
+                                    hovertemplate: `<b>%{text}</b><extra></extra>`,
+                                    yaxis: 'y3',
+                                    xaxis: 'x2',
+                                    marker: {
+                                        size: 2
+                                    },
+                                });
+                        });
+                        Plotly.addTraces(HTML, data);
+                    });
+            };
+            function readCSV(input) {
+                let file = input.files[0];
+                let reader = new FileReader();
+                reader.readAsText(file);
+                reader.onload = function () {
+                    Papa.parse(reader.result, {
+                        complete: function (results) {
+                            let header = [];
+                            if (document.querySelector('#header').checked) {
+                                header = Array.from(results.data[0], (el, i) => ((i == 0) ? 'Date' : el));
+                                results.data.shift();
+                            }
+                            else {
+                                header = Array.from(results.data[0], (el, i) => ((i == 0) ? 'Date' : ('Y' + String(i))));
+                            };
+                            let obj = { 'Date': [], data: {} };
+                            header.forEach((el, i) => {
+                                if (!i == 0) {
+                                    obj.data[el] = []
+                                }
+                            });
+                            results.data.forEach((rows, j) => {
+                                rows.forEach((cels, i) => {
+                                    if (i == 0) {
+                                        if (cels.trim().length < 10) {
+                                            return;
+                                        }
+                                        obj[header[i]][j] = $.dt(cels, document.querySelector('#fDateCSV').value);
+                                    } else {
+                                        if (!cels == '') {
+                                            obj.data[header[i]][j] = Number(cels.replace(',', '.'));
+                                        }
+                                    }
+                                })
+                            });
+//                            console.log(obj);
+                            
+                            dataPlotly = [];
+                            for (const [key, value] of Object.entries(obj.data)) {
+                                dataPlotly.push({
+                                    type: "scattergl",
+                                    mode: $.plotly.mode.text,
+                                    name: key,
+                                    x: obj['Date'],
+                                    y: value,
+                                    text: Array.from(value, (el) => String(el)),
+                                    hovertemplate: `<b>%{text} %{x}</b>`,
+                                    marker: {
+                                        size: 5
+                                    },
+                                    yaxis: 'y',
+                                    xaxis: 'x2',
+
+                                });
+                            };
+                            document.querySelector('#mappingCSV').traces = Array.from(dataPlotly, (el, i) => HTML.data.length + i);
+                            HTML.layout.yaxis.visible = true;
+                            Plotly.relayout(HTML, HTML.layout);
+                            Plotly.addTraces(HTML, dataPlotly);
+                        }
+                    });
+                };
+                reader.onerror = function () {
+                };
+            }
+            const draw = (period) => {
+                document.querySelector(".calc").value = '⭕';
+                setTimeout(() => {
+                    Plotly.deleteTraces(HTML, Array.from(new Array(HTML.data.length), (el, i) => i));
+                    Plotly.addTraces(HTML, [{
+                        type: "scattergl",
+                        mode: 'markers',
+                        yaxis: 'y',
+                        xaxis: 'x',
+                        showlegend: false,
+                        hoverinfo: 'none',
+                    }]);
+                    const promiseAll = [];
+                    if (period.metall.length > 0) { promiseAll.push(metallTraces(courseMetallCBR(period.dateStart, period.dateEnd))) };
+                    if (period.money.length > 0) { promiseAll.push(moneyTraces(courseMoneyCBR(period.dateStart, period.dateEnd))) };
+                    if (period.planets.length > 0) {
+                        const promisePl = plsPeriod(period, period.flag);
+                        promiseAll.push(planetsTraces(promisePl));
+                        if (period.aspects.length > 0) {
+                            promisePl.then((res) => {
+                                aspectsTraces(new Promise((resolve, reject) => {
+                                    resolve($.aspectsPeriod(res));
+                                    reject(undefined);
+                                }));
+                            });
+                        }
+                    }
+                    if (!document.querySelector('#file').value == '') {
+                        readCSV(document.querySelector('#file'));
+                        HTML.layout.yaxis.visible = true;
+                        Plotly.relayout(HTML, HTML.layout);
+                    }
+                    else {
+                        HTML.layout.yaxis.visible = false;
+                        Plotly.relayout(HTML, HTML.layout);
+                    }
+                    Promise.all(promiseAll).then((res) => {
+                        if (android) {
+                            Array.from(document.querySelectorAll('.overaxes-below .x2y3-y')).forEach((el) => {
+                                el.classList.add('android');
+                            })
+                        };
+                        setRect2D.out = {};
+                        document.querySelector(".calc").value = '▶';
+                    });
+                });
+            };
+            draw(setRect2D);
+        })
+    </script>
+    <footer></footer>
+    <script src="/js/fragments/header.js"></script>
+    <script src="/js/fragments/footer.js"></script>
+    <script>
+        document.querySelector('header select[name=nav]').value = window.location.pathname;
+    </script>
+</body>
+
+</html>

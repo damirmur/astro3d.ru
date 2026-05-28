@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="/js/astro/astrodate-0.0.11.js"></script>
+    <script src="/js/lib/source-0.0.6.js"></script>
+    <script src="/js/ephe/pluto.min.js"></script>
+    <script src="/js/calendar202025.js"></script>
+
+    <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-locale-ru-latest.js"></script>
+    <script>Plotly.setPlotConfig({ locale: 'ru-RU' });
+    </script>
+</head>
+
+<body>
+    <span>
+        <div>
+            <a href="/" target="_blank" rel="noopener noreferrer">Astro3D</a>
+        </div>
+        <br>
+        <label id="info"></label>
+
+        <div id="setting">
+            <select class="course" id="course"></select>
+            <select class="course" id="interval"></select>
+            <select class="course" id="period"></select>
+            <select class="astro" id="astro">
+                <option value=""></option>
+                <option value="calendar" selected>Calendar</option>
+                <option value="deg30">deg30</option>
+                <option value="speed">Speed</option>
+                <option value="sign">Sign</option>
+                <option value="yinyang">YinYang</option>
+                <option value="elements">Elements</option>
+                <option value="cross">cross</option>
+                <option value="zones">zones</option>
+                <option value="quadrants">quadrants</option>
+                <option value="asp">Aspects</option>
+            </select>
+            <input type="button" name='update' class="course" value="Update">
+            <details class="selcourses" hidden>
+                <summary>Select monet</summary>
+                <form id="selcourses"></form>
+            </details>
+
+        </div>
+        <div id="chart"></div>
+
+
+
+    </span>
+    <script>
+        const $ = {
+            с202025: window.calendarjson['202025'],
+            getPlanetPeriod: Source.def.getPlanetPeriod,
+            getLunar: Source.def.getDateLunar,
+            getAstroData: Source.def.getAstroData,
+            getOffset: Source.net.getOffset,
+            localDateJSON: Source.net.localDateJSON,
+            plSign: $ad.plSignChort,
+            aspSign: $ad.aspSign,
+            colorAsp: $ad.colorAsp,
+            orbRadix: $ad.OrbRadix,
+            orbTpansit: $ad.OrbTpansit,
+            aspectRadix: $ad.aspectRadixArr,
+            df: $ad.formatStringToDate,
+            zPadd: $ad.zeroPadded,
+            getPlanetPeriod: Source.def.getPlanetPeriod,
+            dbSave: (data, key = 'stat2D') => { localStorage.setItem(key, JSON.stringify(data)) },
+            dbLoad: (key = 'stat2D') => { return JSON.parse(localStorage.getItem(key)) },
+            strZod: $ad.strZod,
+            plSign: $ad.plSignChort,
+            plName: $ad.plName,
+            aspSign: $ad.aspSign,
+            trace: [100, 1, 5, 8.33, 10, 15, 16.67, 25],
+            colorway: [
+                '#1f77b4',  // muted blue
+                '#ff7f0e',  // safety orange
+                '#2ca02c',  // cooked asparagus green
+                '#d62728',  // brick red
+                '#9467bd',  // muted purple
+                '#8c564b',  // chestnut brown
+                '#e377c2',  // raspberry yogurt pink
+                '#7f7f7f',  // middle gray
+                '#bcbd22',  // curry yellow-green
+                '#17becf'   // blue-teal
+            ],
+            dash: ["solid", "dot", "dash", "longdash", "dashdot", "longdashdot", "2px", "7px"],
+            zodSign: $ad.zodSign,
+            month: ['Янв', 'Фев', 'Март', 'Апр', 'Май', 'Июнь', 'Июль', 'Авг', 'Сент', 'Окт', 'Ноя', 'Дек'],
+            day: ['Вск', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб',],
+            randomInt: (min = 0, max = 9) => {
+                return Math.floor(min + Math.random() * (max + 1 - min));
+            },
+        };
+        let defA3D = {
+            planets: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+            aspects: [0, 60, 90, 120, 180],
+            type: 'horo',
+            houses: 'P',
+            rotate: "0",
+            direction: "clockwise",
+            tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            locale: 'ru-RU', //(navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language),
+            city: Intl.DateTimeFormat().resolvedOptions().timeZone.split('/')[1],
+            i18n: 'ru'
+        };
+        if (defA3D.i18n) {
+            switch (defA3D.locale.slice(0, 2)) {
+                case 'ru':
+                    fetch('/js/i18n/ru.json').then((response) => response.json()).then((json) => {
+                        defA3D.i18n = json;
+                    });
+                    break;
+                default:
+                    fetch('/js/i18n/en.json').then((response) => response.json()).then((json) => { defA3D.i18n = json });
+                    break;
+            }
+        };
+        const SM = {
+            investing: {
+                interval: { 'PT1M': 1, 'PT5M': 5, 'PT15M': 15, 'PT30M': 30, 'PT1H': 60, 'PT5H': 300, 'P1D': 1440, 'P1W': 10080, 'P1M': (720 * 30) },
+                points_count: [60, 70, 120, 160],
+                period: ['P1D', 'P1W', 'P1M', 'P3M', 'P6M', 'P1Y', 'P5Y', 'MAX'],
+                course: [{ BTC: 1057391 }, { 'USDT': 1061453 }, { 'USDC': 1099576 }, { 'MNTe/USD': 1205233 }, { 'BTG/USDT': 1061452 }, { ENA: 1213052 }, { ethereum: 1061443 }, { toncoin: 1198309 }, { solana: 1177183 }, { bnb: 1061448 }, { gold: 8830 }, { dollarIndex: 8827 }, { dogecoin: 1061477 }, { bch: 1061410 }, { bome: 1212514 }, { wif: 1210022 },],
+            }
+        };
+        const INVEST = {
+            name: '',
+            course: '',
+            period: '',
+            chartId: 'chart',
+            astro: '',
+            flag: 260,
+            planets: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],//[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+            courses: [],
+            out: [],
+            aspects: ['0', '60', '90', '120', '180'],
+            tz: 'UTC',
+            gmtMin: $.getOffset('UTC', new Date()),
+        };
+        const checkAll = (formID, arrObj) => {
+            const form = document.querySelector(`#${formID}`);
+            if (!form) return;
+            if (!Array.isArray(arrObj)) return;
+            if (arrObj.length == 0) return;
+            if (typeof arrObj[0] === 'object') {
+                arrObj.forEach((el) => {
+                    const label = document.createElement('label');
+                    const input = document.createElement('input');
+                    input.type = 'checkbox';
+                    input.name = Object.values(el)[0];
+                    label.appendChild(input);
+                    label.innerHTML += Object.keys(el)[0];
+                    form.appendChild(label);
+                    form.appendChild(document.createElement('br'));
+
+                })
+            }
+        };
+        const optionAdd = (selId, arr) => {
+            const select = document.querySelector(`#${selId}`);
+            if (!select) return;
+            if (!Array.isArray(arr)) return;
+            if (arr.length == 0) return;
+            if (typeof arr[0] === 'object') {
+                arr.forEach((el) => {
+                    const opt = document.createElement('option');
+                    opt.value = Object.values(el)[0];
+                    opt.textContent = Object.keys(el)[0];
+                    select.appendChild(opt);
+                })
+            } else {
+                arr.forEach((el) => {
+                    const opt = document.createElement('option');
+                    opt.value = el;
+                    opt.textContent = `${el}`;
+                    select.appendChild(opt);
+                })
+            };
+        };
+        const getSelectText = (str) => {
+            const sel = document.querySelector(str);
+            return sel.options[sel.selectedIndex].text;
+        };
+        const getJSON = (async (url) => {
+            let res = fetch(url, { method: 'GET', redirect: 'follow' })
+                .catch(error => console.log('Request failed', error))
+                .then(response =>
+                    response.json().then(data => ({ data: data, status: response.status }))
+                        .then(result => {
+                            if (result.status == 200) { result.data.status = 'OK'; return result.data; }
+                        }))
+            return res;
+        });
+        const getData = (async (data) => {
+            //Open   High    Low  Close     Volume Currency
+            let res = await getJSON(`https://api.investing.com/api/financialdata/${data.course}/historical/chart/?period=${data.period}&interval=${data.interval}&pointscount=160`);
+            console.log(res);
+            return { name: data.name, data: res.data, type: 'course' };
+        });
+        const getPeriodPlanetInDates = ((period, flag) => {
+            flag = Number(flag || period.flag);
+            const swe = new SwissEph();
+            swe.init();
+            for (let i = 0; i < period.out.length; i++) {
+                if (!period.out[i].date) { continue }
+                period.out[i].planets = [];
+                const date = period.out[i].date;
+                let [, year, month, day, hour, min, sec] = (date).match(/(\d{4})-(\d{2})-(\d{2})T(\d{2})\:(\d{2})\:(\d{2})/);
+                const sd = new SweDate(Number(year), Number(month), Number(day), Number(hour) + Number(min) / 60 + Number(sec) / 3600, true);
+                period.planets.forEach((el) => {
+                    let pl = [];
+                    swe.swe_calc_ut(sd.jd, el, flag, pl);
+                    let degree = (pl[0] % 30);
+                    let sign = ~~(pl[0] / 30);
+                    period.out[i].planets.push({ deg: degree, sign: sign, speed: pl[3] });
+                });
+            };
+            return period;
+        });
+        const localDateLunar = ((date, flag = 260) => {
+            let serr;
+            let moonpos = getPeriodPlanetInDates({ planets: [1], out: [{ date: date }] }, flag).out[0].planets[0];
+            moonpos = moonpos.deg + (moonpos.sign * 30);
+            const sweph = new SwissEph();
+            sweph.init();
+            let dateLunar = new Date(date);
+            let s_jd = new SweDate(dateLunar.getUTCFullYear(), dateLunar.getUTCMonth() + 1, dateLunar.getUTCDate(), dateLunar.getUTCHours(), sweph.sd.SE_GREG_CAL).jd;
+            s_jd = sweph.swe_mooncross_ut(moonpos, s_jd, flag, serr);
+            dateLunar = sweph.sd.swe_revjul(s_jd, sweph.sd.SE_GREG_CAL);
+            let dateLunarJSON = String(dateLunar.year) + '-' + String(dateLunar.month).padStart(2, '0') + '-' + String(dateLunar.day).padStart(2, '0') + 'T' +
+                String(Math.trunc(dateLunar.hour)).padStart(2, '0') + ':' + String(Math.trunc(dateLunar.hour % 1 * 60)).padStart(2, '0') + ':' + String(Math.trunc(((dateLunar.hour * 60) % 1) * 60)).padStart(2, '0') + '.000Z';
+            return dateLunarJSON;
+
+        });
+        const textCalendar = (obj) => {
+            const loc = defA3D.i18n;
+            let calendar2D = {
+                planets: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
+                aspects: ['0', '60', '90', '120', '180'],
+                tz: defA3D.tz,
+                fdw: 0,
+                gmtMin: $.getOffset(defA3D.tz, new Date()),
+                month: (new Date().getMonth() + 1),
+                //                month: $ad.zeroPadded(new Date().getMonth() + 1),
+                year: new Date().getFullYear(),
+                sign: 0,
+            };
+            let textHead = ``;
+            let textMoon = ``;
+            let text = ``;
+            switch (obj.t) {
+                case "exA":
+                    if (calendar2D.sign == 0) {
+                        text += loc.planets[obj.p[0]] + `(` + loc.zodiac[$ad.strZod([obj.de[0], 1]).sign] + `)` + ` ` +
+                            loc.aspects[obj.a] + ` ` + loc.planets[obj.p[1]] + `(` + loc.zodiac[$ad.strZod([obj.de[1], 1]).sign] + `)\n`;
+                    } else {
+                        text += loc.planets[obj.p[0]] + `(` +
+                            (($ad.strZod([obj.de[0], 1]).sign + 2 - calendar2D.sign > 0) ? ($ad.strZod([obj.de[0], 1]).sign + 2 - calendar2D.sign) : $ad.strZod([obj.de[0], 1]).sign + 14 - calendar2D.sign) +
+                            `) ` +
+                            loc.aspects[obj.a] + ` ` + loc.planets[obj.p[1]] + `(` +
+                            (($ad.strZod([obj.de[1], 1]).sign + 2 - calendar2D.sign > 0) ? ($ad.strZod([obj.de[1], 1]).sign + 2 - calendar2D.sign) : $ad.strZod([obj.de[1], 1]).sign + 14 - calendar2D.sign) +
+                            `)\n`;
+                    }
+                    break;
+                case "r":
+                    text += loc.planets[obj.p[0]] + ` ` + ((obj.r == 1) ? loc.events['r'] : loc.events['d']) + '\n';
+                    break;
+                case "chS":
+                    text += loc.planets[obj.p[0]] + ` ` + loc.events['chS'] + ` ` + loc.zodiac[obj.s] + '\n';
+                    break;
+                case "noC":
+                    text += loc.planets[1] + ` ` + loc.events['noC'] + ` ` + new Date(obj.chS + ':00.000Z').toLocaleTimeString(defA3D.locale, { 'timeZone': calendar2D.tz, hour: "2-digit", minute: "2-digit" })
+                    // if (!(dateSting == new Date(obj.chS + ':00.000Z').toLocaleDateString(defA3D.locale, { 'timeZone': calendar2D.tz }))) {
+                    text += ' ' + new Date(obj.chS + ':00.000Z').toLocaleDateString(defA3D.locale, { 'timeZone': calendar2D.tz, month: "2-digit", day: "2-digit" });
+                    // }
+                    text += '\n';
+                    break;
+                default:
+                    text += '\n';
+                    break;
+            };
+            return text;
+        };
+        const signYinYang = (sign) => {
+            return (sign % 2) ? -1 : 1;
+        };
+        const chart = (chartId, arrDates = [], layout = {}) => {
+            const plotly = document.querySelector(`#${chartId}`);
+            const data = [];
+            for (let elData of arrDates) {
+                data.push(elData);
+            };
+            Plotly.react(plotly, data, layout);
+            plotly.on('plotly_click', e => {
+                const date = new Date().toJSON() //e.points[0].data.x[e.points[0].pointNumber];
+                document.querySelector(`#info`).innerHTML = date;
+                let p = {
+                    flag: INVEST.flag,
+                    planets: INVEST.planets,
+                    astro: INVEST.astro,
+                    out: [{ date: date }]
+                };
+                p = getPeriodPlanetInDates(p);
+                console.log(p.out[0].planets);
+
+            });
+            plotly.on('plotly_relayout', e => {
+                if (e.dragmode) { layout.dragmode = e.dragmode };
+                if ((layout.dragmode == 'pan') && (INVEST.astro) && (e['xaxis.range[1]'])) {
+                    const dateEnd = e['xaxis.range[1]'].replace(' ', 'T') + 'Z';
+                    if (dateEnd > INVEST.dateEnd) {
+                        const p = {
+                            dateStart: new Date(INVEST.dateEnd).getTime(),
+                            dateEnd: new Date(dateEnd).getTime(),
+                            stepMin: SM.investing.interval[INVEST.interval],
+                            flag: INVEST.flag,
+                            planets: INVEST.planets,
+                            astro: INVEST.astro,
+                        };
+                        p.out = (() => {
+                            let out = [];
+                            let step = Number(p.stepMin) * 60000;
+                            let dateTemp = p.dateStart;
+                            while (dateTemp < p.dateEnd) {
+                                out.push({ date: new Date(dateTemp).toJSON() });
+                                dateTemp += step;
+                            };
+                            return out
+                        })();
+                        const prVals = [];
+                        document.querySelector('#' + INVEST.chartId).data.forEach((elOld, i) => {
+                            if (elOld.meta[1] != 'speed') return;
+                            prVals.push(elOld.meta[2].prVal)
+                        });
+                        const trace = traceAstro(p, p.out.map(el => el.date), prVals).trace;
+                        const updateTrace = { id: [], x: [], y: [], text: [], customdata: [], 'marker.color': [], 'marker.size': [] };
+                        document.querySelector('#' + INVEST.chartId).data.forEach((elOld, i) => {
+                            const elNew = trace.filter(el => ((el.meta[0] == 'astro') && (el.meta[1] == elOld.meta[1]) && (el.name == elOld.name)));
+                            if (elNew.length == 0) return;
+                            updateTrace.id.push(i);
+                            updateTrace.x.push(elNew[0].x);
+                            updateTrace.y.push(elNew[0].y)
+                            updateTrace.customdata.push(elNew[0].customdata);
+                            updateTrace.text.push(elNew[0].text);
+                            updateTrace['marker.color'].push(elNew[0].marker.color);
+                            updateTrace['marker.size'].push(elNew[0].marker.size);
+                        });
+                        const extendTrace = { x: updateTrace.x, y: updateTrace.y };
+                        if ((new Set(updateTrace['marker.size']).size > 1) || (updateTrace['marker.size'][0])) { extendTrace['marker.size'] = updateTrace['marker.size'] };
+                        if ((new Set(updateTrace['marker.color']).size > 1) || (updateTrace['marker.color'][0])) { extendTrace['marker.color'] = updateTrace['marker.color'] };
+                        if ((new Set(updateTrace.text).size > 1) || (updateTrace.text[0])) { extendTrace.text = updateTrace.text };
+                        if ((new Set(updateTrace.customdata).size > 1) || (updateTrace.customdata[0])) { extendTrace.customdata = updateTrace.customdata };
+                        Plotly.extendTraces(INVEST.chartId, extendTrace, updateTrace.id);
+                        INVEST.dateEnd = new Date(p.dateEnd).toJSON();
+                    };
+                }
+            })
+        }
+        const gap = (date = [], val = [], diff = 8) => {
+            if (!date[0]) return [[], []];
+            let arrD = [date[0]];
+            let arrV = [val[0]];
+            for (let i = 1; i < val.length; i++) {
+                if (Math.abs(val[i - 1][0] - val[i][0]) > diff) {
+                    arrD.push(date[i - 1]);
+                    arrV.push([, ,]);
+                };
+                arrD.push(date[i]);
+                arrV.push(val[i]);
+            }
+            return [arrD, arrV];
+        };
+        const gapBar = (arr) => {
+            let arrD = arr.reduce((arrD, elR, iR, arrR) => {
+                if (arrR.filter(elF => (elF.d == elR.d)).length > 1) { arrD.push(elR) };
+                return arrD
+            }, []);
+            arrD = arrD.map((el, i) => { el.d = el.d + ":" + String(i).padStart(2, '0') });
+        };
+        const traceCourses = (INVEST) => {
+            INVEST.dateStart = undefined;
+            INVEST.dateEnd = undefined;
+            let dates = [];
+            const trace = [];
+            for (let i = 0; i < INVEST.courses.length; i++) {
+                const element = INVEST.courses[i];
+                const d = element.data.map(el => new Date(el[0]).toJSON());
+                if (element.type == 'course') {
+                    const x = d;
+                    dates = dates.concat(d);
+                    let y = [];
+                    if (INVEST.courses.length == 1) {
+                        y = element.data.map(el => el[1]);
+                    } else {
+                        const prVal = 100 / (Math.max(...element.data.map(el => el[1])));
+                        y = element.data.map(el => el[1] * prVal);
+                    };
+                    trace.push({
+                        name: element.name,
+                        meta: [element.type, element.name],
+                        x: x,
+                        y: y,
+                        text: (INVEST.courses.length == 1) ? '' : element.data.map(el => el[1]),
+                        mode: 'lines',//'markers'
+                        type: 'scattergl',
+                        xaxis: 'x',
+                        yaxis: 'y',
+                    })
+                };
+            };
+            dates = [...new Set(dates)].sort();
+            return ({ trace: trace, date: dates });
+        };
+        const traceAstro = (invest, dates, prVals = []) => {
+            invest.dateStart = dates[0];
+            invest.dateEnd = dates[dates.length - 1];
+            invest.out = dates.map(el => { return { date: el } });
+            getPeriodPlanetInDates(invest);
+            const trace = [];
+            switch (invest.astro) {
+                case 'calendar':
+                    const calendar = $.с202025.filter((el) => (el.d >= invest.dateStart) && (el.d <= invest.dateEnd));
+                    const moon = calendar.filter((el) => ((el.t == 'exA') && (el.p[0] == "1") && (el.p[1] == "0")));
+                    if (moon.length != 0) {
+                        trace.push({
+                            meta: ['astro', invest.astro],
+                            name: "moon",
+                            x: moon.map(el => el.d),
+                            y: moon.map(el => "moon"),
+                            text: moon.map(el => textCalendar(el)),
+                            mode: 'markers',//'markers+text'
+                            type: 'scattergl',
+                            visible: true,
+                            xaxis: 'x',
+                            yaxis: 'y2',
+                            //                        customdata: y.map(el => el.toFixed(2)),
+                            textinfo: 'none',
+                            hoverinfo: 'none',
+                            hovertemplate: `<b>%{text}</b>`,// %{customdata}
+                            marker: {
+                                color: moon.map(el => $.colorAsp[el.a]),
+                                size: moon.map(el => ((el.t == 'exA') ? 4 : 6)),
+                            },
+                        });
+                    };
+                    ["r", "noC", "chS", 'exA'].forEach(t => {
+                        let calendarType = calendar.filter((el) => (el.t == t));
+                        if (t == 'exA') {
+                            //[0, 60, 90, 120, 180],
+                            gapBar(calendar.filter((el) => (el.t == 'exA')));
+                            trace.push({
+                                meta: ['astro', invest.astro],
+                                name: t,
+                                x: calendarType.map(el => el.d),
+                                y: calendarType.map(el => el.t),
+                                text: calendarType.map(el => textCalendar(el)),
+                                mode: 'markers',//'markers+text'
+                                type: 'scattergl',
+                                visible: true,
+                                xaxis: 'x',
+                                yaxis: 'y2',
+                                //                        customdata: y.map(el => el.toFixed(2)),
+                                textinfo: 'none',
+                                hoverinfo: 'none',
+                                hovertemplate: `<b>%{text}</b>`,// %{customdata}
+                                marker: {
+                                    color: calendarType.map(el => $.colorAsp[el.a]),
+                                    size: calendarType.map(el => 1),
+                                }
+                            });
+                        };
+                        trace.push({
+                            meta: ['astro', invest.astro],
+                            name: t,
+                            x: calendarType.map(el => el.d),
+                            y: calendarType.map(el => el.t),
+                            text: calendarType.map(el => textCalendar(el)),
+                            mode: 'markers',//'markers+text'
+                            type: (t == 'exA') ? 'bar' : 'scattergl',
+                            visible: true,
+                            xaxis: 'x',
+                            yaxis: 'y2',
+                            //                        customdata: y.map(el => el.toFixed(2)),
+                            textinfo: 'none',
+                            hoverinfo: 'none',
+                            hovertemplate: (t == 'exA') ? `` : `<b>%{text}</b>`,// %{customdata}
+                            marker: {
+                                color: calendarType.map(el => { return ((el.t == 'exA') ? $.colorAsp[el.a] : 'black') }),
+                                size: calendarType.map(el => { return ((el.t == 'exA') ? 4 : 6) }),
+                            },
+                        });
+                    });
+
+                    break;
+                case 'speed':
+                    invest.planets.forEach((pl, i) => {
+                        const prVal = (prVals[1]) ? prVals[i] : 100 / (Math.max(...invest.out.map(el => Math.abs(el.planets[i].speed))));
+                        const y = invest.out.map(el => el.planets[i].speed * prVal);
+                        trace.push({
+                            meta: ['astro', invest.astro, { prVal: prVal }],
+                            name: $ad.plName[pl],
+                            x: dates,
+                            y: y,
+                            text: invest.out.map(el => el.planets[i].speed.toFixed(2)),
+                            customdata: y.map(el => el.toFixed(2)),
+                            textinfo: 'none',
+                            hoverinfo: 'none',
+                            hovertemplate: `<b>%{text} %{customdata}%</b>`,
+                            mode: 'lines',//'markers'
+                            type: 'scattergl',
+                            visible: (Number(pl) < 2) ? "legendonly" : true,
+                            xaxis: 'x',
+                            yaxis: 'y2',
+                        });
+                    });
+                    break;
+                case 'deg30':
+                    invest.planets.forEach((pl, i) => {
+                        if ((Number(pl) == 1) && (SM.investing.interval[INVEST.interval] > 300)) return;
+                        let [date, deg] = gap(dates, invest.out.map(el => [el.planets[i].deg, el.planets[i].sign, el.planets[i].speed]), 8);
+                        //                        let [date, deg] = gap(dates, invest.out.map(el => [el.planets[i].deg,el.planets[i].sign,el.planets[i].speed]), 8);
+                        trace.push({
+                            meta: ['astro', invest.astro],
+                            name: $ad.plName[pl],
+                            x: date,
+                            y: deg.map(el => el[0]),
+                            // text: deg.map((el) => $ad.zodSign[el[1]]),
+                            text: deg.map((el) => $ad.strZod([el[0] + (el[1] * 30), el[2]]).text),
+                            textinfo: 'none',
+                            hoverinfo: 'none',
+                            hovertemplate: `<b>%{text} %{y}</b>`,
+                            mode: 'lines',//'markers'
+                            type: 'scattergl',
+                            marker: { size: 3, },
+                            // visible: (Number(pl) ==1) ? "legendonly" : true,
+                            visible: true,
+                            xaxis: 'x',
+                            yaxis: 'y2',
+                        });
+                    });
+                    break;
+                case 'sign':
+                    invest.planets.forEach((pl, i) => {
+                        let [x, y] = gap(dates, invest.out.map(el => [el.planets[i].sign]));
+                        trace.push({
+                            meta: ['astro', invest.astro],
+                            name: $ad.plName[pl],
+                            x: x,
+                            y: y.map(el => el[0]),
+                            // text: (invest.courses.length == 1) ? '' : invest.out.map(el => el[1]),
+                            mode: 'lines',//'markers'
+                            type: 'scattergl',
+                            marker: { size: 3, },
+                            visible: (Number(pl) < 2) ? "legendonly" : true,
+                            xaxis: 'x',
+                            yaxis: 'y2',
+                        });
+                    });
+                    break;
+                case 'yinyang':
+                    let yinyang = Array(dates.length).fill(0);
+                    invest.planets.forEach((pl, i) => {
+                        yinyang = yinyang.map((el, j) => (el + ((invest.out[j].planets[i].sign % 2) ? -1 : 1)));
+                    });
+                    trace.push({
+                        meta: ['astro', invest.astro],
+                        name: 'Yin/Yang',
+                        x: dates,
+                        y: yinyang,
+                        // text: (invest.courses.length == 1) ? '' : invest.out.map(el => el[1]),
+                        mode: 'lines',//'markers'
+                        type: 'scattergl',
+                        xaxis: 'x',
+                        yaxis: 'y2',
+                    });
+                    break;
+                case 'elements':
+                    const elements = {};
+                    Object.keys($ad.zodStatistic['elements']).forEach(key => {
+                        elements[key] = Array(dates.length).fill(0);
+                        invest.planets.forEach((pl, i) => {
+                            elements[key] = elements[key].map((el, j) => (el + (($ad.zodStatistic['elements'][key].includes(invest.out[j].planets[i].sign)) ? 1 : 0)))
+                        });
+                        trace.push({
+                            meta: ['astro', invest.astro],
+                            name: key,
+                            x: dates,
+                            y: elements[key],
+                            // text: (invest.courses.length == 1) ? '' : invest.out.map(el => el[1]),
+                            mode: 'lines',//'markers'
+                            type: 'scattergl',
+                            marker: { size: 3, },
+                            xaxis: 'x',
+                            yaxis: 'y2',
+                        });
+                    });
+                    break;
+                case 'cross':
+                    const cross = {};
+                    Object.keys($ad.zodStatistic['cross']).forEach(key => {
+                        cross[key] = Array(dates.length).fill(0);
+                        invest.planets.forEach((pl, i) => {
+                            cross[key] = cross[key].map((el, j) => (el + (($ad.zodStatistic['cross'][key].includes(invest.out[j].planets[i].sign)) ? 1 : 0)))
+                        });
+                        trace.push({
+                            meta: ['astro', invest.astro],
+                            name: key,
+                            x: dates,
+                            y: cross[key],
+                            // text: (invest.courses.length == 1) ? '' : invest.out.map(el => el[1]),
+                            mode: 'lines',//'markers'
+                            type: 'scattergl',
+                            marker: { size: 3, },
+                            xaxis: 'x',
+                            yaxis: 'y2',
+                        });
+                    });
+                    break;
+                case 'quadrants':
+                    const quadrants = {};
+                    Object.keys($ad.zodStatistic['quadrants']).forEach(key => {
+                        quadrants[key] = Array(dates.length).fill(0);
+                        invest.planets.forEach((pl, i) => {
+                            quadrants[key] = quadrants[key].map((el, j) => (el + (($ad.zodStatistic['quadrants'][key].includes(invest.out[j].planets[i].sign)) ? 1 : 0)))
+                        });
+                        trace.push({
+                            meta: ['astro', invest.astro],
+                            name: key,
+                            x: dates,
+                            y: quadrants[key],
+                            // text: (invest.courses.length == 1) ? '' : invest.out.map(el => el[1]),
+                            mode: 'lines',//'markers'
+                            type: 'scattergl',
+                            xaxis: 'x',
+                            yaxis: 'y2',
+                        });
+                    });
+                    break;
+                case 'zones':
+                    const zones = {};
+                    Object.keys($ad.zodStatistic['zones']).forEach(key => {
+                        zones[key] = Array(dates.length).fill(0);
+                        invest.planets.forEach((pl, i) => {
+                            zones[key] = zones[key].map((el, j) => (el + (($ad.zodStatistic['zones'][key].includes(invest.out[j].planets[i].sign)) ? 1 : 0)))
+                        });
+                        trace.push({
+                            meta: ['astro', invest.astro],
+                            name: key,
+                            x: dates,
+                            y: zones[key],
+                            // text: (invest.courses.length == 1) ? '' : invest.out.map(el => el[1]),
+                            mode: 'lines',//'markers'
+                            type: 'scattergl',
+                            marker: { size: 3, },
+                            xaxis: 'x',
+                            yaxis: 'y2',
+                        });
+                    });
+                    break;
+                default:
+                    break;
+            };
+            return ({ trace: trace });
+        };
+        const drawChart = (INVEST) => {
+            const layout = {
+                legend: {
+                    bgcolor: 'rgba(0,0,0,0)',
+                    title: { text: '<b>Astro3D.ru</b>', font: { color: '#8900FF' } },
+                    xanchor: 'left',//'right','center'
+                    yanchor: "center",
+                    y: 0.9,
+                    xref: 'paper',//"container",
+                    yref: 'paper',//"container",
+                    x: -0.1,
+                    itemwidth: 35,
+                    tracegroupgap: 20,
+                },
+                font: {
+                    family: 'monospace',
+                    size: 14,
+                },
+                margin: { t: 40, b: 20, l: 10, r: 50 },
+                hovermode: 'x unified',
+                dragmode: 'pan',
+                autosize: true,
+                indentation: 10,
+                yaxis2: { ticktext: undefined, tickvals: undefined, fixedrange: true, side: 'right', },
+                yaxis: { fixedrange: true, side: 'right', },
+                xaxis: { domain: (window.innerWidth < 1200) ? [0.05, 1] : [0.05, 1] },
+            };
+            let courses = traceCourses(INVEST);
+            let traces = courses.trace;
+            let dates = courses.date;
+            layout.title = {
+                text: `${INVEST.name}  ${INVEST.courses[0].data[INVEST.courses[0].data.length - 1][1]} ${new Date(INVEST.courses[0].data[INVEST.courses[0].data.length - 1][0]).toUTCString()}`,
+                xanchor: 'center',
+                y: 0.965,
+            };
+            if (INVEST.astro) {
+                layout.grid = { rows: 2, columns: 1, };//pattern: 'independent'
+                //subplots:[['xy','x2y'], ['xy3','x4y4']],roworder:'bottom to top'
+                switch (INVEST.astro) {
+                    case "sign":
+                        layout.yaxis2.ticktext = Array(12).fill(0).map((_, i) => i).map((el) => $ad.zodSign[el]);
+                        layout.yaxis2.tickvals = Array(12).fill(0).map((_, i) => i);
+                        break;
+                    case "calendar":
+                        layout.yaxis2.tickvals = ["r", "noC", 'moon', 'exA', "chS"];
+                        layout.yaxis2.autorange = 'reversed';
+                        break;
+                    default:
+                        break;
+                };
+                traces.push(...traceAstro(INVEST, dates).trace);
+            };
+
+            chart(INVEST.chartId, traces, layout);
+        }
+        (() => {//init
+            const courseName = (select) => {
+                return select.options[select.selectedIndex].text;
+            };
+            optionAdd("course", [...SM.investing.course, { 'All': ''}]);
+            optionAdd("period", ['', ...SM.investing.period]);
+            optionAdd("interval", Object.keys(SM.investing.interval).map(key => { return { [key]: SM.investing.interval[key] } }));
+            INVEST.name = courseName(document.querySelector(`#setting #course`));
+            INVEST.course = document.querySelector(`#setting #course`).value;
+            INVEST.astro = document.querySelector(`#setting #astro`).value;
+            document.querySelector(`#setting #period`).value = 'MAX';
+            document.querySelector(`#setting #interval`).value = 1;
+            INVEST.interval = getSelectText(`#setting #interval`);
+            INVEST.period = document.querySelector(`#setting #period`).value;
+            document.querySelector(`input[name=update]`).addEventListener("click", (e) => {
+                const evt = new Event("change", { bubbles: true, cancelable: false });
+                document.querySelector(`.course`).dispatchEvent(evt);
+
+            });
+            document.querySelectorAll(`.course`).forEach(el => {
+                el.addEventListener("change", (e) => {
+                    console.log("change");
+                    INVEST.course = document.querySelector(`.course#course`).value;
+                    INVEST.name = courseName(document.querySelector(`.course#course`));
+                    INVEST.interval = getSelectText(`#setting #interval`);
+                    INVEST.period = document.querySelector(`.course#period`).value;
+                    if (INVEST.course) {
+                        document.querySelector(".selcourses").hidden = true;
+                        getData(INVEST)
+                            .then(res => {
+                                INVEST.courses = [res];
+                                drawChart(INVEST)
+                            });
+                    } else {//All
+                        document.querySelector(".selcourses").hidden = false;
+                        const promiseAll = [];
+                        let sel = ([...document.querySelector(`#selcourses`).elements].filter(el => el.checked).map(el => Number(el.name)));
+                        SM.investing.course.forEach((c) => {
+                            const invest = { interval: INVEST.interval, period: INVEST.period };
+                            if (!sel.includes(Object.values(c)[0])) return;
+                            invest.course = Object.values(c)[0];
+                            invest.name = Object.keys(c)[0];
+                            promiseAll.push(getData(invest));
+                        });
+                        Promise.all(promiseAll).then((res) => {
+                            INVEST.courses = res;
+                            drawChart(INVEST)
+                        });
+                    }
+                });
+            });
+            document.querySelector(`#selcourses`).addEventListener("change", (e) => {
+                let sel = ([...e.target.form.elements].filter(el => el.checked).map(el => Number(el.name)));
+                const promiseAll = [];
+                SM.investing.course.forEach((c) => {
+                    const invest = { interval: INVEST.interval, period: INVEST.period };
+                    if (!sel.includes(Object.values(c)[0])) return;
+                    invest.course = Object.values(c)[0];
+                    invest.name = Object.keys(c)[0];
+                    promiseAll.push(getData(invest));
+                });
+                Promise.all(promiseAll).then((res) => {
+                    INVEST.courses = res;
+                    drawChart(INVEST)
+                });
+            });
+            document.querySelector(`.astro`).addEventListener("change", (e) => {
+                INVEST.astro = document.querySelector(`#setting #astro`).value;
+                drawChart(INVEST);
+            });
+
+            getData(INVEST)
+                .then(res => {
+                    INVEST.courses = [res];
+                    drawChart(INVEST)
+                });
+        })();
+        checkAll("selcourses", SM.investing.course);
+        const Ticker = (data) => {
+            document.querySelector(`#info`).innerHTML = ``;
+            //Open   High    Low  Close     Volume Currency
+            getJSON(`https://api.investing.com/api/financialdata/1057391/historical/chart/?period=P1D&interval=PT1M&pointscount=60`)
+                .then(res => {
+                    const resEnd = res.data[res.data.length - 1];
+                    document.querySelector(`#info`).innerHTML += `BTCUSD ${new Date(resEnd[0]).toISOString().slice(11, 16)} ${resEnd[1]}<br>`;
+                });
+            getJSON(`https://api.investing.com/api/financialdata/1205233/historical/chart/?period=P1D&interval=PT1M&pointscount=60`)
+                .then(res => {
+                    const resEnd = res.data[res.data.length - 1];
+                    document.querySelector(`#info`).innerHTML += `MNTUSD ${new Date(resEnd[0]).toISOString().slice(11, 16)} ${resEnd[1]}<br>`;
+                });
+            getJSON(`https://api.investing.com/api/financialdata/1213052/historical/chart/?period=P1D&interval=PT1M&pointscount=60`)
+                .then(res => {
+                    const resEnd = res.data[res.data.length - 1];
+                    document.querySelector(`#info`).innerHTML += `ENAUSD ${new Date(resEnd[0]).toISOString().slice(11, 16)} ${resEnd[1]}<br>`;
+                });
+                document.querySelector(`.course`).dispatchEvent(new Event("change", { bubbles: true, cancelable: false }));
+
+
+        }
+        Ticker(INVEST);
+        setInterval(() => Ticker(INVEST), 58000);
+
+
+    </script>
+
+</body>
+
+</html>

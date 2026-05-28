@@ -1,0 +1,156 @@
+.color-primary-0 {
+    color: #8900FF
+}
+
+/* Main Primary color */
+.color-primary-1 {
+    color: #A138FC
+}
+
+.color-primary-2 {
+    color: #8F0FFF
+}
+
+.color-primary-3 {
+    color: #6400BA
+}
+
+.color-primary-4 {
+    color: #4D008F
+}
+
+body {
+    font-family: monospace;
+    margin: 0;
+    padding: 0;
+}
+
+body * {
+    margin: 2px;
+    border: 0;
+}
+
+.center {
+    text-align: center;
+    position: relative;
+    margin: 5px;
+    padding: 5px;
+    top: 0;
+    left: 0;
+    min-width: max-content;
+
+}
+
+.work {
+    text-align: start;
+    display: flex;
+    border: 1px solid black;
+    width: 95%;
+    height: max-content;
+    flex-direction: column;
+    border-radius: 15px;
+    padding: 3px;
+    align-items: flex-start;
+}
+
+.header {
+    margin: 0;
+    z-index: 1;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 5px;
+    position: sticky;
+    top: 0;
+    text-align: center;
+    height: 30px;
+    width: 99vw;
+    background: #8900FF;
+    color: #fff;
+    justify-content: space-evenly;
+}
+
+.header * {
+    font-size: 26px;
+    margin: 0;
+    background: #8900FF;
+    color: #fff;
+}
+
+@media (max-width: 420px) {
+    .header * {
+        font-size: 16px;
+    }
+}
+
+.header select {
+    border: 0;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+footer {
+    padding: 5px;
+    position: relative;
+    bottom: 0;
+    text-align: center;
+    height: 30px;
+    width: 100vw;
+    background: #8800ff;
+    color: #fff;
+
+}
+fieldset {
+    padding: 0;
+}
+
+.grid {
+    width:fit-content;
+    display: inline-grid;
+    grid-template-columns: auto auto auto auto;
+    padding: 2px;
+    margin: 1px 0px;
+    align-items: center;
+    justify-content: space-between;
+    align-content: center;
+}
+
+@media (max-width: 650px) {
+    .grid {
+        grid-template-columns: auto auto;
+    }
+}
+
+.grid * {
+    border-bottom: 1px solid rgba(83, 83, 83, 0.4);
+    margin: 2px 2px;
+}
+
+.grid a,
+.grid #file,
+.grid label {
+    border: 0;
+}
+
+select-checkbox {
+    font-weight: bold;
+    min-width: 100px;
+    max-width: 200px;
+}
+
+#courses {
+    width: auto;
+    margin: 0%;
+
+}
+
+[type=button] {
+    border: 1px solid rgba(83, 83, 83, 0.4);
+    border-radius: 5px;
+}
+.none {
+    display: none;
+    height: 0;
+}

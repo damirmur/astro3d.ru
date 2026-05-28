@@ -1,0 +1,77 @@
+{
+    "zodiac":{
+        "0": "aries",
+        "1": "taurus",
+        "2": "gemini",
+        "3": "cancer",
+        "4": "leo",
+        "5": "virgo",
+        "6": "libre",
+        "7": "scorpio",
+        "8": "sagittarius",
+        "9": "capricorn",
+        "10": "aquarius",
+        "11": "pisces"
+    },
+    "planets":{
+        "0": "Sun",
+        "1": "Moon",
+        "2": "Mercury",
+        "3": "Venus",
+        "4": "Mars",
+        "5": "Jupiter",
+        "6": "Saturn",
+        "7": "Uranus",
+        "8": "Neptune",
+        "9": "Pluto",
+        "10": "mean Node",
+        "11": "North Node",
+        "12": "Lilith",
+        "13": "osc. Apogee"
+    },
+    "aspects":{
+        "0": "Conjunction", "30": "Semisextile", "45": "Semisquare", "60": "Sextile", "72": "Quintile", "90": "Square", "120": "Trine", "135": "Trioctile", "150": "Quincunx", "180": "Opposition"
+
+    },
+    "houses":{
+        "A": "equal",
+        "B": "Alcabitius",
+        "C": "Campanus",
+        "G": "Gauquelin sectors",
+        "H": "horizon/azimut",
+        "K": "Koch",
+        "M": "Morinus",
+        "O": "Porphyry",
+        "P": "Placidus",
+        "R": "Regiomontanus",
+        "T": "Polich/Page",
+        "U": "Krusinski-Pisa-Goelzer",
+        "W": "equal/ whole sign",
+        "X": "axial rotation system/Meridian houses",
+        "Y": "APC houses"
+    },
+    "events":{
+        "chS": "ingression",
+        "noC":"without a course",
+        "exA":"",
+        "r":"retrograde",
+        "d":"direct",
+        "s":"static"
+    },
+    "moon":{
+        "md":"l.d.","n":"New Moon","f":"Full Moon","1":"I quarter","2":"II quarter","3":"III quarter ","4":"IV quarter","i":"increasing","d":"decreasing"
+    },
+    "ui":{
+        "table":"table",
+        "text":"text",
+        "chart":"map",
+        "graph":"graph",
+        "scene": "scene",
+        "firstDay": "Start of week"
+
+    },
+    "astrology":{
+        "cosmogram": "cosmogram", "horoscope": "horoscope", "radix": "radix", "natal": "natal", "transit": "transit", "solar": "solar", "lunar ":"lunar",
+        "period":"period"
+    }
+}

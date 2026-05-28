@@ -1,0 +1,95 @@
+.color-primary-0 {
+    color: #8900FF
+}
+
+/* Main Primary color */
+.color-primary-1 {
+    color: #A138FC
+}
+
+.color-primary-2 {
+    color: #8F0FFF
+}
+
+.color-primary-3 {
+    color: #6400BA
+}
+
+.color-primary-4 {
+    color: #4D008F
+}
+
+body {
+    font-family: monospace;
+    margin: 0;
+    padding: 0;
+    color: #4D008F;
+
+}
+
+body * {
+    margin: 0 auto;
+    border: 0;
+}
+
+.center {
+    text-align: center;
+    position: relative;
+    margin: 5px;
+    padding: 5px;
+    top: 0;
+    left: 0;
+
+}
+
+.imgcenter {
+    display: flex;
+    vertical-align: middle;
+}
+
+.work {
+    display: flex;
+    border: 1px solid black;
+    width: 600px;
+    height: max-content;
+    flex-direction: column;
+    border-radius: 15px;
+    padding: 3px;
+
+}
+.grid {
+    width: 97vw;
+    display: inline-grid;
+    grid-template-columns: auto auto auto;
+    padding: 2px;
+    margin: 1px auto;
+    text-align: center;
+}
+
+@media (max-width: 830px) {
+    .grid {
+        grid-template-columns: auto;
+    }
+
+    .grid * {
+        max-width: 97vw;
+
+    }
+}
+
+.grid * {
+    border: 1px solid rgba(83, 83, 83, 0.4);
+    margin: 1px 0px;
+}
+
+.grid a,
+.grid p {
+    text-decoration: none;
+    border: 0;
+}
+
+.grid img {
+    width: 20vw;
+    height: 20vh;
+    border: 0;
+}

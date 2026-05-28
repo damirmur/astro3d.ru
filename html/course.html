@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Статистика курсов</title>
+    <script type="module" src="/js/start.js"></script>
+    <script src="/datasets/course.js"></script>
+    <script src="/js/components/select-checkbox-0.0.3.js"></script>
+    <script src="/js/ephe/pluto.min.js"></script>
+    <script src="/js/astro/astrodate-0.0.11.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.1.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-locale-ru-latest.js"></script>
+    <script>
+        Plotly.setPlotConfig({ locale: 'ru-RU' });
+    </script>
+    <style>
+        details {
+            font:
+                16px,
+                monospace;
+            width: fit-content;
+        }
+
+        details>summary {
+            padding: 2px 6px;
+            width: 15em;
+            background-color: #ddd;
+            border: none;
+            box-shadow: 3px 3px 4px black;
+            cursor: pointer;
+        }
+
+        details>p {
+            border-radius: 0 0 10px 10px;
+            background-color: #ddd;
+            padding: 2px 6px;
+            margin: 0;
+            box-shadow: 3px 3px 4px black;
+        }
+
+        details[open]>summary {
+            background-color: #ccf;
+        }
+
+        table {
+            height: 300px;
+            z-index: 0;
+            position: relative;
+            border-spacing: 0;
+            display: block;
+            overflow: scroll;
+            width: fit-content;
+        }
+
+        tbody {
+            width: 100%;
+            position: relative;
+        }
+
+        th {
+            cursor: pointer;
+            z-index: 1;
+            background-color: #00aeef;
+            position: sticky;
+            top: 0;
+        }
+
+        th,
+        td {
+            border: 1px solid black;
+        }
+
+        .trFocus td {
+            border: 1px solid red;
+        }
+
+        /* .column {
+            border: 1px solid red;
+        } */
+
+        #work p {
+            display: inline-grid;
+            grid-template-columns: auto auto;
+            padding: 2px;
+            width: max-content;
+
+        }
+
+        #tables {
+            padding: 2px;
+        }
+
+        #work * {
+            margin: 2px;
+        }
+
+        #diagramStat {
+            height: 400px;
+            width: 800px;
+        }
+
+        #diagram {
+            width: 99%;
+        }
+
+        select-checkbox {
+            width: 120px;
+        }
+    </style>
+</head>
+
+<body>
+    <details id="work">
+        <summary>Настройка</summary>
+        <p>
+            <label>
+                <select name="sDiagram">
+                    <option value="planets-deg">Планеты</option>
+                    <option value="planets-sign">Знаки зодиака</option>
+                    <option value="calendar-day" selected>Дни недели</option>
+                    <option value="calendar-ndate">Дни месяца</option>
+                    <option value="calendar-month">Месяцы</option>
+                </select>
+            </label>
+            <label>
+                <select name="sCourse">
+                    <option value="Au">Золото ЦБ</option>
+                    <option value="Ag">Серебро ЦБ</option>
+                    <option value="Pt">Платина ЦБ</option>
+                    <option value="Pd">Палладий ЦБ</option>
+                    <option value="dollar">Доллар ЦБ</option>
+                    <option value="evro">Евро ЦБ</option>
+                    <option value="yen">Иена ЦБ</option>
+                    <option value="yuan">Юань ЦБ</option>
+                    <option value="bit" selected>БитконДол</option>
+                </select>
+            </label>
+            <span>
+                <label>С: <input name="dateStart" type="date"></label>
+                <label>По: <input name="dateEnd" type="date"></label>
+            </span>
+            <label>Фикс.даты <input type="checkbox" name="fixDate" id="fixDate"></label>
+            <label> Курс на дату
+                <select name="difDate">
+                    <option value="0" selected>Текущая</option>
+                    <option value="1">Предидущая</option>
+                </select>
+            </label>
+            <br>
+            <label>Планеты <select-checkbox id="planets"></select-checkbox></label>
+            <label>% <select-checkbox id="trace"></select-checkbox></label>
+            <label> Выборка диаграммы
+                <select name="minmaxDiagram">
+                    <option value="max" selected>Максимальное</option>
+                    <option value="min">Минимальное</option>
+                </select>
+            </label>
+            <label> Тип диаграммы
+                <select name="tDiagram">
+                    <option value="bar" selected>Полоса</option>
+                    <option value="scatter">Линия</option>
+                </select>
+            </label>
+            <label> Сортирока диаграммы
+                <select name="sortedDiagram">
+                    <option value="" selected>Обычный порядок</option>
+                    <option value="1">Сортировать</option>
+                </select>
+            </label>
+        </p>
+    </details>
+    <p name="service">
+        <label>Показывать график <input type="checkbox" name="viewGraph" id="viewGraph"></label>
+        <label>Показывать таблицу <input type="checkbox" name="viewTable" id="viewTable"></label>
+    </p>
+    <details style="width: 100%;">
+        <summary>График</summary>
+        <p id="diagram"></p>
+    </details>
+    <details>
+        <summary>Таблица</summary>
+        <p id="tables"></p>
+    </details>
+    <div id='diagramStat'></div>
+    <label>Описание </label>
+    <br>
+    <textarea name="prim" id="prim" cols="80" rows="3"></textarea>
+    <br>
+    <input type="button" value="Сохр. в истории" onclick="saveHistory()" />
+    <br>
+    <details id="history">
+        <summary>История</summary>
+    </details>
+
+    <script>
+        const $ = {
+            dbSave: (data, key = 'stat2D') => { localStorage.setItem(key, JSON.stringify(data)) },
+            dbLoad: (key = 'stat2D') => { return JSON.parse(localStorage.getItem(key)) },
+            strZod: $ad.strZod,
+            plSign: $ad.plSignChort,
+            aspSign: $ad.aspSign,
+            trace: [100, 1, 5, 8.33, 10, 15, 16.67, 25],
+            colorway: [
+                '#1f77b4',  // muted blue
+                '#ff7f0e',  // safety orange
+                '#2ca02c',  // cooked asparagus green
+                '#d62728',  // brick red
+                '#9467bd',  // muted purple
+                '#8c564b',  // chestnut brown
+                '#e377c2',  // raspberry yogurt pink
+                '#7f7f7f',  // middle gray
+                '#bcbd22',  // curry yellow-green
+                '#17becf'   // blue-teal
+            ],
+            zodSign: $ad.zodSign,
+            month: ['Янв', 'Фев', 'Март', 'Апр', 'Май', 'Июнь', 'Июль', 'Авг', 'Сент', 'Окт', 'Ноя', 'Дек'],
+            day: ['Вск', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб',]
+        };
+        const historyArr = [];
+        let stat2D = {
+            planets: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],//[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 12]
+            flag: '260', //260|268 =((Swe.SEFLG_SPEED | Swe.SEFLG_MOSEPH))|((Swe.SEFLG_SPEED | Swe.SEFLG_MOSEPH|Swe.SEFLG_HELCTR ))
+            sCourse: 'dollar',
+            sDiagram: "calendar-day",//'calendar-ndate','planets-deg','calendar-day',
+            tDiagram: 'bar',//'bar','scatter', 
+            difDate: 0,
+            trace: [0, 3],
+            minmaxDiagram: "max",
+            sortedDiagram: "",
+            dateStart: '',
+            dateEnd: '',
+        };
+        const dt = (date, difDate = 0) => {
+            const [, d, m, y] = /(\d{2}).(\d{2}).(\d{4})/.exec(date);
+            let outDate = new Date(new Date().setUTCFullYear(Number(y), Number(m) - 1, Number(d)));
+            outDate = new Date(outDate.setUTCDate(outDate.getUTCDate() - difDate));
+            return (new Date(outDate.setUTCHours(12, 30, 0, 0)));
+        };
+        const period = [dt(course[stat2D.sCourse][0].d).getTime(), dt(course[stat2D.sCourse][course[stat2D.sCourse].length - 1].d).getTime()];
+        stat2D.dateStart = new Date(Math.min(...period)).toJSON().slice(0, 10);
+        stat2D.dateEnd = new Date(Math.max(...period)).toJSON().slice(0, 10);
+        document.querySelector("input[name=dateStart]").value = stat2D.dateStart;
+        document.querySelector("input[name=dateEnd]").value = stat2D.dateEnd;
+        document.querySelector("select[name=minmaxDiagram]").value = stat2D.minmaxDiagram;
+        document.querySelector("select[name=sortedDiagram]").value = stat2D.sortedDiagram;
+        document.querySelector("select[name=difDate]").value = stat2D.difDate;
+        document.querySelector("select[name=sCourse]").value = stat2D.sCourse;
+        document.querySelector("select[name=tDiagram]").value = stat2D.tDiagram;
+        document.querySelector("select[name=sDiagram]").value = stat2D.sDiagram;
+        document.querySelector('#work').addEventListener("change", (e) => {
+            if ((e.target.name == "dateStart") || ((e.target.name == "dateEnd"))) {
+                let year = e.target.valueAsDate.getUTCFullYear();
+                stat2D.dateStart = document.querySelector("input[name=dateStart]").valueAsDate.toJSON().slice(0, 10);
+                stat2D.dateEnd = document.querySelector("input[name=dateEnd]").valueAsDate.toJSON().slice(0, 10);
+                if ((year < 1900) || (year > (new Date().getUTCFullYear() + 5))) { return }
+                if (document.querySelector("input[name=dateStart]").valueAsNumber >= document.querySelector("input[name=dateEnd]").valueAsNumber) { return }
+            };
+            stat2D[e.target.name] = e.target.value;
+            if ((e.target.name == "sCourse") && (!document.querySelector('#fixDate').checked)) {
+                const period = [dt(course[stat2D.sCourse][0].d).getTime(), dt(course[stat2D.sCourse][course[stat2D.sCourse].length - 1].d).getTime()];
+                stat2D.dateStart = new Date(Math.min(...period)).toJSON().slice(0, 10);
+                stat2D.dateEnd = new Date(Math.max(...period)).toJSON().slice(0, 10);
+                document.querySelector("input[name=dateStart]").value = stat2D.dateStart;
+                document.querySelector("input[name=dateEnd]").value = stat2D.dateEnd;
+            }
+            createChart(stat2D);
+        });
+        document.querySelector('p[name=service]').addEventListener("change", (e) => {
+            if ((e.target.name == "viewTable")) {
+                document.querySelector('#tables').parentElement.open = (e.target.checked) ? true : false;
+            }
+            if ((e.target.name == "viewGraph")) {
+                document.querySelector('#diagram').parentElement.open = (e.target.checked) ? true : false;
+            }
+            createChart(stat2D);
+        });
+        document.querySelector("#trace").obj = $.trace;
+        document.querySelector("#trace").value = stat2D.trace;
+        document.querySelector("#trace").name = Array.from(stat2D.trace, (el) => $.trace[el]);
+        if (document.querySelector("#trace").value.length == 0) {
+            document.querySelector("#trace").name = 'Select trace';
+        }
+        document.querySelector("#trace").addEventListener("change", (e) => {
+            stat2D.trace = e.target.value;
+            e.target.name = Array.from(stat2D.trace, (el) => $.trace[el]);
+            if (e.target.value.length == 0) {
+                e.target.name = 'Select trace';
+            };
+            createChart(stat2D);
+        });
+        document.querySelector("#planets").obj = $.plSign;
+        document.querySelector("#planets").value = stat2D.planets;
+        document.querySelector("#planets").name = Array.from(stat2D.planets, (el) => $.plSign[el]);
+        if (document.querySelector("#planets").value.length == 0) {
+            document.querySelector("#planets").name = 'Select planets';
+        }
+        document.querySelector("#planets").addEventListener("change", (e) => {
+            stat2D.planets = e.target.value;
+            e.target.name = Array.from(stat2D.planets, (el) => $.plSign[el]);
+            if (e.target.value.length == 0) {
+                e.target.name = 'Select planets';
+            };
+            createChart(stat2D);
+        });
+        const saveHistory = () => {
+            const historyText = (dataArr) => {
+                let text = '';
+                dataArr.forEach(el => {
+                    text += el[0] + ':{<br> pos: ' + el[1] + '<br>val: ' + el[2] + '}<br>';
+                })
+                return text;
+            }
+            if (historyArr.length > 0) {
+                const p = document.createElement('p');
+                p.innerHTML = document.querySelector('#prim').value;
+                let div = document.createElement('div');
+                div.innerHTML = historyText(historyArr[historyArr.length - 1].out);
+                p.appendChild(div);//Plotly.toImage('chart', { format: 'png', width: 800, height: 600 }).then(
+                let img = document.createElement('img');
+                Plotly.toImage('diagramStat')
+                    .then(url => {
+                        img.setAttribute("src", url);
+                    });
+                p.appendChild(img);
+                document.querySelector('#history').appendChild(p)
+            }
+        };
+        const createChart = (stat2D) => {
+            const graphIn = (arrDif) => {
+                const diagram = document.querySelector('#diagram');
+                const traceCours = {
+                    x: Array.from(arrDif, x => x.date),
+                    y: Array.from(arrDif, x => x.c),
+                    type: 'scatter',
+                    name: 'cours'
+                };
+                const traceDifCours = {
+                    x: Array.from(arrDif, x => x.date),
+                    y: Array.from(arrDif, x => x.difN),
+                    type: 'scatter',
+                    yaxis: 'y2',
+                    name: 'dif Norm'
+                };
+                const traceDifCours1 = {
+                    x: Array.from(arrDif, x => x.date),
+                    y: Array.from(arrDif, x => x.difAbs),
+                    type: 'scatter',
+                    yaxis: 'y3',
+                    name: 'dif Abs'
+                };
+
+                const layout = {
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    hovermode: 'x unified',//'x unified',//false,'y'
+                    font: {
+                        family: 'monospace',
+                        size: 14,
+                    },
+                    yaxis2: {//money
+                        position: 0.995,
+                        autoshift: true,
+                        autorange: true,
+                        overlaying: 'y',
+                        side: 'right',
+                    },
+                    yaxis3: {//money
+                        position: 1,
+                        autoshift: true,
+                        autorange: true,
+                        overlaying: 'y',
+                        side: 'right',
+                    },
+                };
+                Plotly.newPlot(diagram, [traceCours, traceDifCours, traceDifCours1], layout);
+                diagram.on('plotly_click', function (data) {
+                    const detail = { index: data.points[0].pointIndex, data: data.points[0].data.x[data.points[0].pointIndex] };
+                    const event = new CustomEvent("datetime", { 'detail': detail });
+                    diagram.dispatchEvent(event);
+                    document.getElementById(detail.data).scrollIntoView({ block: "center" });
+                    if (document.querySelector('.trFocus')) { document.querySelector('.trFocus').classList.remove('trFocus') };
+                    document.getElementById(detail.data).classList.add('trFocus');
+                });
+
+
+            }
+            const tableIn = (stat2D) => {
+                let table = document.createElement('table');
+                table.innerHTML = `
+                <thead><tr>
+                <th class="tableH_date">date</th>
+                <th class="tableH_ndate">ndate</th>
+                <th class="tableH_month">month</th>
+                <th class="tableH_day">day</th>
+                <th class="tableH_c">course</th>
+                <th class="tableH_dif">dif</th>
+                <th class="tableH_difN">difN</th>
+                <th class="tableH_difAbs">difAbs</th>
+                </tr></thead><tbody></tbody>`;
+                if (stat2D.sDiagram.split('-')[0] == 'planets') {
+                    for (let i = 0; i < stat2D.planets.length; i++) {
+                        const el = stat2D.planets[i];
+                        let th = document.createElement('th');
+                        th.classList.add('tableH_' + el);
+                        th.innerText = $.plSign[el];
+                        table.querySelector('thead tr').appendChild(th)
+                    }
+                }
+                table.querySelectorAll('thead th').forEach((th) => {
+                    th.addEventListener('click', (e) => {
+                        const getCellValue = (tr, idx) => tr.children[idx].innerText || tr.children[idx].textContent;
+                        const comparer = (idx, asc) => (a, b) => ((v1, v2) =>
+                            v1 !== '' && v2 !== '' && !isNaN(v1) && !isNaN(v2) ? v1 - v2 : v1.toString().localeCompare(v2)
+                        )(getCellValue(asc ? a : b, idx), getCellValue(asc ? b : a, idx));
+
+                        const table = th.closest('table');
+                        const tbody = table.querySelector('tbody');
+                        Array.from(tbody.querySelectorAll('tr'))
+                            .sort(comparer(Array.from(th.parentNode.children).indexOf(th), this.asc = !this.asc))
+                            .forEach(tr => tbody.appendChild(tr));
+
+                    })
+                })
+
+                for (let i = 0; i < stat2D.out.length; i++) {
+                    const el = stat2D.out[i];
+                    let row = document.createElement('tr');
+                    row.id = el.date;
+                    let date = document.createElement('td');
+                    date.classList.add('tableB_d');
+                    date.innerText = el.date.slice(0, 10);
+                    row.append(date);
+                    let ndate = document.createElement('td');
+                    ndate.classList.add('tableB_ndate');
+                    ndate.innerText = el.calendar[0].ndate;
+                    row.append(ndate);
+                    let month = document.createElement('td');
+                    month.classList.add('tableB_month');
+                    month.innerText = el.calendar[0].month;
+                    row.append(month);
+                    let day = document.createElement('td');
+                    day.classList.add('tableB_day');
+                    day.innerText = el.calendar[0].day;
+                    row.append(day);
+                    let course = document.createElement('td');
+                    course.classList.add('tableB_c');
+                    course.innerText = el.c.toFixed(2);
+                    row.append(course);
+
+                    let dif = document.createElement('td');
+                    dif.classList.add('tableB_dif');
+                    dif.innerText = el.difc.toFixed(2);
+                    row.append(dif);
+                    let difN = document.createElement('td');
+                    difN.classList.add('tableB_difN');
+                    difN.innerText = el.difN.toFixed(2);
+                    row.append(difN);
+                    let difAbs = document.createElement('td');
+                    difAbs.classList.add('tableB_dif2');
+                    difAbs.innerText = el.difAbs.toFixed(4);
+                    row.append(difAbs);
+                    if (stat2D.sDiagram.split('-')[0] == 'planets') {
+                        for (let y = 0; y < el.planets.length; y++) {
+                            let td = document.createElement('td');
+                            td.classList.add('tableB_pl');
+                            td.innerHTML = el.planets[y].deg + ` ` + $.zodSign[el.planets[y].sign];
+                            row.appendChild(td)
+                        };
+                    };
+                    row.addEventListener('click', (e) => {
+                        const curveNumber = 2;
+                        const pointNum = diagram.data[curveNumber].x.indexOf(e.target.parentElement.id);
+                        Plotly.Fx.hover(diagram,
+                            { xval: new Date(e.target.parentElement.id).getTime(), hovermode: 'x unified' }
+                        );
+                        if (document.querySelector('.trFocus')) { document.querySelector('.trFocus').classList.remove('trFocus') };
+                        row.classList.add('trFocus');
+
+                    })
+                    table.querySelector('tbody').appendChild(row);
+                };
+                document.querySelector('#tables').appendChild(table);
+            };
+            const dataInit = (dateArr, difDate) => {
+                difDate = Number(difDate);
+                let arr = [];
+                for (let i = 1; i < dateArr.length; i++) {
+                    const el = dateArr[i];
+                    let date = dt(dateArr[i].d, difDate);
+                    arr.push({
+                        'c': el.c,
+                        'date': date.toJSON(),
+                        'difc': el.c - dateArr[i - 1].c,
+                        'difN': ((el.c - dateArr[i - 1].c) / (el.c * (Math.round((dt(dateArr[i].d) - dt(dateArr[i - 1].d)) / 86400000)))),
+                        'calendar': [{
+                            'day': date.getDay(),
+                            'month': date.getMonth(),
+                            'ndate': date.getDate()
+                        }]
+                    });
+                    arr[i - 1].difAbs = Math.abs(arr[i - 1].difN);
+                }
+                return arr;
+            };
+            const getPlanetInPeriod = ((period, flag = 260) => {
+                const swe = new SwissEph();
+                swe.init();
+                for (let i = 0; i < period.out.length; i++) {
+                    period.out[i].planets = [];
+                    const date = period.out[i].date;
+                    let [, year, month, day, hour, min, sec] = (date).match(/(\d{4})-(\d{2})-(\d{2})T(\d{2})\:(\d{2})\:(\d{2})/);
+                    const sd = new SweDate(Number(year), Number(month), Number(day), Number(hour) + Number(min) / 60 + Number(sec) / 3600, true);
+                    period.planets.forEach((el) => {
+                        let pl = [];
+                        swe.swe_calc_ut(sd.jd, el, flag, pl);
+                        let deg = ~~((Math.round(pl[0] * 100) / 100) % 30);
+                        let sign = ~~(pl[0] / 30);
+                        period.out[i].planets.push({ deg: deg, sign: sign, speed: Math.round(pl[3] * 100) / 100 });
+                    });
+                };
+                return period;
+            });
+            const trace = (arrIn, key = undefined, length = undefined) => {
+                if (!key[0]) { return [] };
+                key = key.split('-');
+                if (!key[1]) { return [] };
+                let arr = arrIn;
+                if (!length) { length = arrIn.length }
+                else { arr = arrIn.slice(0, length) };
+                let dateLength = 0;
+                for (let a = 0; a < length; a++) {
+                    for (let b = 0; b < arr[a][key[0]].length; b++) {
+                        const max = arr[a][key[0]][b][key[1]];
+                        dateLength = (max > dateLength) ? max : dateLength;
+                    }
+                };
+                if (!dateLength) { return [] };
+                let date = Array.from(Array(dateLength + 1), (e, i) => { return { p: i, val: 0 } })
+                for (let a = 0; a < length; a++) {
+                    for (let b = 0; b < arr[a][key[0]].length; b++) {
+                        date[arr[a][key[0]][b][key[1]]].val += 1;
+                    }
+                };
+                return date;
+            };
+            const sortTrace = (dateArr) => {
+                return dateArr.toSorted((a, b) => -Math.abs(a.val) + Math.abs(b.val));
+            };
+            const tracesPlotly = (traceData, color = '', divider = 1, name = 'date') => {
+                const trace = [];
+                const x = (traceData) => {
+                    arr = []
+                    switch (stat2D.sDiagram) {
+                        case "calendar-day":
+                            arr = Array.from(traceData, (x, i) => $.day[x.p]);
+                            break;
+                        case "calendar-month":
+                            arr = Array.from(traceData, (x, i) => $.month[x.p]);
+                            break;
+                        case "planets-sign":
+                            arr = Array.from(traceData, (x, i) => $.zodSign[x.p]);
+                            break;
+                        default:
+                            arr = Array.from(traceData, (x, i) => x.p + '`');
+                            break;
+                    }
+                    return arr
+
+                }
+                trace.push({
+                    mode: "lines+markers+text",
+                    marker: { color: color },
+                    x: x(traceData),
+                    y: Array.from(traceData, (y) => (Math.round(y.val * 100 / divider) / 100)),
+                    text: Array.from(traceData, (y) => (Math.round(y.val * 100 / divider) / 100)),
+                    type: stat2D.tDiagram,
+                    name: name
+                });
+                let mean = Array.from(traceData, (x) => (x.val / divider)).reduce((accumulator, currentValue) => accumulator + currentValue, 0,) / traceData.length;
+                mean = Math.round(mean * 100) / 100;
+                trace.push({
+                    mode: "lines",
+                    line: { color: color },
+                    x: x(traceData),
+                    y: Array.from(Array(traceData.length), (x) => mean),
+                    name: 'mean'
+                });
+                return trace;
+            };
+            const textTitle = (stat2D) => {
+                const getSelectText = (name) => {
+                    const sel = document.querySelector("select[name=" + name + "]");
+                    return sel.options[sel.selectedIndex].text;
+                }
+                const getDateText = (name) => {
+                    return document.querySelector("input[name=" + name + "]").value;
+                }
+                const getSelBoxText = (id) => {
+                    const sel = document.querySelector("select[name=" + name + "]");
+                    return sel.options[sel.selectedIndex].text;
+                }
+                let text = 'Активн. ' + document.querySelector("select[name=minmaxDiagram]").value + ', ' + getSelectText('sCourse') + ', ' + getSelectText('sDiagram') + '<br>' +
+                    ' с ' + getDateText('dateStart') + ' по ' + getDateText('dateEnd') + '<br>';
+                text += ((Number(stat2D.difDate) == 0) ? '' : 'Смещение даты -1, ');
+                text += (stat2D.sDiagram.split('-')[0] == 'planets') ? document.querySelector("#planets").name : '';
+                return text
+            };
+            const layoutDeg = {
+                title: { text: 'title' },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: {
+                    family: 'monospace',
+                    size: 14,
+                },
+
+            };
+
+            let arrDif = dataInit(course[stat2D.sCourse], stat2D.difDate);
+            arrDif = arrDif.filter((el) => (el.date >= stat2D.dateStart) & (el.date <= stat2D.dateEnd));//2010-07-18 -bitcoin
+            stat2D.out = arrDif//arrDif.slice(0, 5816);
+            if (stat2D.sDiagram.split('-')[0] == 'planets') { getPlanetInPeriod(stat2D) };
+            document.querySelector('#tables').innerHTML = ``;
+            document.querySelector('#diagram').innerHTML = ``;
+            if (document.querySelector('#viewTable').checked) { tableIn(stat2D) };
+            if (document.querySelector('#viewGraph').checked) { graphIn(arrDif) };
+            let dataIn = stat2D.out.toSorted((a, b) => (stat2D.minmaxDiagram == "max") ? (b.difAbs - a.difAbs) : (a.difAbs - b.difAbs));
+            let dataDeg = [];
+            let histrory = { set: {}, out: [] };
+            stat2D.trace.forEach((el, i) => {
+                let traceEL = $.trace[el];
+                const traceTemp = (stat2D.sortedDiagram) ? sortTrace(trace(dataIn, stat2D.sDiagram, Math.round(dataIn.length * traceEL / 100))) : (trace(dataIn, stat2D.sDiagram, Math.round(dataIn.length * traceEL / 100)));
+                dataDeg.push(...tracesPlotly(traceTemp, $.colorway[i], traceEL / 100,
+                    (traceEL == 100) ? ('All ' + dataIn.length) : (stat2D.minmaxDiagram + ' ' + traceEL + '%')));
+                histrory.out.push([traceEL, Array.from(traceTemp, (x) => x.p), Array.from(traceTemp, (x) => x.val)]);
+            });
+            layoutDeg.title.text = textTitle(stat2D);
+            stat2D.out = [];
+            histrory.set = JSON.parse(JSON.stringify(stat2D));
+            historyArr.push(histrory);
+            document.querySelector('#prim').value = layoutDeg.title.text.replaceAll('<br>', '\n') + '\n';
+            console.log(histrory);
+            Plotly.react('diagramStat', dataDeg, layoutDeg);
+
+        }
+        createChart(stat2D);
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Календарь 2D</title>
+    <script src="/js/start.js"></script>
+    <script src="/js/astro2D.js"></script>
+    <script src="/js/calendar202324.js"></script>
+    <script src="/js/plotly/calendar2d.js"></script>
+    <link rel="stylesheet" href="/css/fragments.css">
+    <link rel="stylesheet" href="/css/calendar2D.css">
+    <style>
+        footer {
+            position: static;
+            bottom: 0;
+        }
+
+        .none {
+            display: none;
+        }
+
+        .tabs-content {
+            text-align: left;
+        }
+
+        .ytick,
+        .y2tick {
+            font-weight: 900;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header"></header>
+    <div class="center">
+        <div class="work">
+            <div class="grid">
+                <label>For: <input name="dateStart" type="datetime-local"></label>
+                <label>to: <input name="dateEnd" type="date"></label>
+                <label>step:
+                    <select name="step"
+                        title="Warning! Choosing a small value can greatly increase computation time and slow down the program.">
+                        <option value="1">1 min</option>
+                        <option value="30" selected>30 min</option>
+                        <option value="60">1 hour</option>
+                        <option value="720">12 h</option>
+                        <option value="1440">1 day</option>
+                        <option value="43830">1 month</option>
+                        <option value="262980">½ year</option>
+                    </select></label>
+                <input class="calcAstro" name="button" value="▶" type="button">
+                <select-checkbox id="planets"></select-checkbox>
+                <select-checkbox id="aspects"></select-checkbox>
+                <select name="ephFlag">
+                    <option value="260" selected>Topo</option>
+                    <option value="268">Gelio</option>
+                </select>
+                <div></div>
+                <label>JSON <input name="json" type="checkbox"></label>
+                <label>Image <input name="image" type="checkbox" checked></label>
+
+            </div>
+        </div>
+        <div id="periodMonth">
+            <label id="GMT">TZ: <select id="tz"></select></label>
+            <select id="month">
+                <option value=1>01</option>
+                <option value=2>02</option>
+                <option value=3>03</option>
+                <option value=4>04</option>
+                <option value=5>05</option>
+                <option value=6>06</option>
+                <option value=7>07</option>
+                <option value=8>08</option>
+                <option value=9>09</option>
+                <option value=10>10</option>
+                <option value=11>11</option>
+                <option value=12>12</option>
+            </select>
+            <select id="year">
+                <option value=2026 selected>2026</option>
+                <option value=2027>2027</option>
+                <option value=2028>2028</option>
+            </select>
+        </div>
+        <div class="tabs-content">
+            <div class="tabs">
+                <div name='table' class="trap-block ">Таблица</div>
+                <div name="text" class="trap-block">Текст</div>
+                <div name="graph" class="trap-block selected">График</div>
+            </div>
+            <div id='table' class="content none">
+                <input type="button" id="saveImage" value="📷">
+                <div id='tableCalendar'></div>
+            </div>
+            <div id="text" class="content none">
+                <textarea id='textCalendar' rows='30'></textarea><br>
+            </div>
+            <div id="graph" class="content"></div>
+            <img id="jpg-export"></img>
+        </div>
+    </div>
+    <script type="module">
+        const calendarToObj = (period) => {
+            let stat = [];
+            const out = period.out;
+            const aspects = period.aspects;
+            const planets = Object.keys(period.out.planets);
+            let p0 = 0;
+            for (const [pl0, value] of Object.entries(out.planets)) {
+                let info = $ad.strZod([out.planets[pl0][0], out.speed[pl0][0]]);
+                let sign = info.numSign;
+                let retro = Math.sign(out.speed[pl0][0]);
+                value.forEach((long, i) => {
+                    info = $ad.strZod([long, out.speed[pl0][i]]);
+                    if (!(sign == info.numSign)) {
+                        stat.push({ d: out.date[i].slice(0, 16), t: 'chS', p: [pl0,], s: info.numSign, de: [~~long] })
+                        sign = info.numSign;
+                    };
+                    if (!(retro == Math.sign(out.speed[pl0][i]))) {
+                        if (!(11 == Number(pl0))) {
+                            stat.push({ d: out.date[i].slice(0, 16), t: 'r', p: [pl0], r: retro, de: [~~long] })
+                            retro = Math.sign(out.speed[pl0][i]);
+                        };
+                    };
+                });
+                for (let p2 = p0 + 1; p2 < Object.keys(planets).length; p2++) {
+                    const pl2 = planets[p2];
+                    aspects.forEach((asp) => {
+                        let exact = 1;
+                        let date = '0';
+                        value.forEach((l0, i) => {
+                            let min = Math.min(l0, out.planets[pl2][i]);
+                            let max = Math.max(l0, out.planets[pl2][i]);
+                            let degree = max - min;
+                            degree = Math.abs(((degree > 191) ? (min - max + 360) : (degree)) - asp);
+                            if ((degree >= - 1) && (degree <= 1)) {
+                                if (degree < (exact)) {
+                                    exact = degree;
+                                    date = out.date[i];
+                                } else {
+                                    if (!(exact == 0)) {
+                                        if (pl2 == "1") {
+                                            stat.push({ d: date.slice(0, 16), t: 'exA', p: [pl2, pl0], a: asp, de: [~~out.planets[pl2][i], ~~l0] })
+                                        }
+                                        else {
+                                            stat.push({ d: date.slice(0, 16), t: 'exA', p: [pl0, pl2], a: asp, de: [~~l0, ~~out.planets[pl2][i]] })
+                                        };
+                                    };
+                                    exact = 0;
+                                };
+                            } else { exact = 1 };
+                        });
+                    });
+                };
+                p0++;
+            };
+            stat.sort((a, b) => { return ((a.d > b.d) ? -1 : 1) });
+            for (let i = 0; i < stat.length; i++) {
+                if ((stat[i].t == 'chS') && (stat[i].p[0] == '1')) {
+                    let noC = { d: stat[i].d, t: 'noC', p: ['1'], chS: stat[i].d };
+                    i++;
+                    if (i == stat.length) { break }
+                    while (!((stat[i].t == 'exA') && (stat[i].p[0] == '1') && (Number(stat[i].p[1]) < 10) && (['0', '60', '90', '120', '180'].includes(stat[i].a)))) {
+                        i++;
+                        if (i == stat.length) { break }
+                    }
+                    if (i == stat.length) { break }
+                    noC.d = stat[i].d.slice(0, 16);
+                    stat.push(noC);
+                }
+            };
+            stat.sort((a, b) => { return ((a.d < b.d) ? -1 : 1) });
+            for (let i = 0; i < stat.length; i++) {
+                if ((stat[i].t == 'noC') && (stat[i].p[0] == '1')) {
+                    let noC=stat[i];
+                    i++;
+                    if (i == stat.length) { break }
+                    while (!((stat[i].t == 'exA') && (stat[i].p[0] == '1') && (Number(stat[i].p[1]) < 10) && (['0', '60', '90', '120', '180'].includes(stat[i].a)))) {
+                        i++;
+                        if (i == stat.length) { break }
+                    }
+                    if (i == stat.length) { break }
+                    noC.chS = stat[i].d.slice(0, 16);
+                }
+            };
+            console.log(stat);
+            return stat;
+        };
+        addEventListener("load", (event) => {
+            Intl.supportedValuesOf('timeZone').forEach((el) => {
+                let option = document.createElement("option");
+                option.text = el;
+                option.value = el;
+                document.querySelector('#tz').add(option);
+            });
+            document.querySelector('#tz').value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            document.querySelector('#GMT').childNodes[0].textContent = 'GMT: ' + $ad.textTZMinToHour(new Date().getTimezoneOffset()) + ' ';
+
+
+            const $ = {
+                getPlanetPeriod: Source.def.getPlanetPeriod,
+                getAstroData: Source.def.getAstroData,
+                getOffset: Source.net.getOffset,
+                localDateJSON: Source.net.localDateJSON,
+                plSign: $ad.plSignChort,
+                aspSign: $ad.aspSign,
+                colorAsp: $ad.colorAsp,
+                orbRadix: $ad.OrbRadix,
+                orbTpansit: $ad.OrbTpansit,
+                aspectRadix: $ad.aspectRadixArr,
+                zodiac: $ad.zodiac,
+                strZod: $ad.strZod,
+                plStatistic: $ad.plStatistic,
+                dbSave: (data, key = 'calendar2D') => { localStorage.setItem(key, JSON.stringify(data)) },
+                dbLoad: (key = 'calendar2D') => { return JSON.parse(localStorage.getItem(key)) },
+            };
+            let calendar2D = {
+                planets: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
+                aspects: ['0', '60', '90', '120', '180'],
+                tz: defA3D.tz,
+                fdw: 0,
+                gmtMin: $.getOffset(defA3D.tz, new Date()),
+                month: (new Date().getMonth() + 1),
+                year: new Date().getFullYear(),
+                sign: 0,
+
+            };
+            if ($.dbLoad()) {
+                const c = $.dbLoad();
+                calendar2D.planets = c.planets || calendar2D.planets;
+                calendar2D.aspects = c.aspects || calendar2D.aspects;
+                calendar2D.tz = c.tz || calendar2D.tz;
+                calendar2D.gmtMin = c.gmtMin || calendar2D.gmtMin;
+                calendar2D.fdw = c.fdw || calendar2D.fdw;
+                calendar2D.sign = c.sign || calendar2D.sign;
+            };
+            document.querySelector("#tz").value = calendar2D.tz;
+            document.querySelector('#GMT').childNodes[0].textContent = 'GMT: ' + $ad.textTZMinToHour(calendar2D.gmtMin) + ' ';
+            document.querySelector('#month').children
+            for (let child of document.querySelector('#month').options) {
+                child.text = new Date(2023, child.value - 1, 5).toLocaleString(navigator.language, { month: "long" });
+            }
+            document.querySelector('#year').value = calendar2D.year;
+            document.querySelector('#month').value = calendar2D.month;
+            document.querySelector(".grid #planets").obj = $.plSign;
+            document.querySelector(".grid #planets").value = calendar2D.planets;
+            document.querySelector(".grid #planets").name = Array.from(calendar2D.planets, (el) => String($.plSign[el]));
+            if (document.querySelector(".grid #planets").value.length == 0) {
+                document.querySelector(".grid #planets").name = 'Select planets';
+            }
+            document.querySelector(".grid #planets").addEventListener("change", (e) => {
+                calendar2D.planets = e.target.value;
+                e.target.name = Array.from(calendar2D.planets, (el) => $.plSign[el]);
+                if (e.target.value.length == 0) {
+                    e.target.name = 'Select planets';
+                }
+            });
+            document.querySelector(".grid #aspects").obj = $.aspSign;
+            document.querySelector(".grid #aspects").value = calendar2D.aspects;
+            document.querySelector(".grid #aspects").name = Array.from(calendar2D.aspects, (el) => String($.aspSign[el]));
+            if (document.querySelector(".grid #aspects").value.length == 0) {
+                document.querySelector(".grid #aspects").name = 'Select aspects';
+            }
+            document.querySelector(".grid #aspects").addEventListener("change", (e) => {
+                calendar2D.aspects = e.target.value;
+                e.target.name = Array.from(calendar2D.aspects, (el) => $.aspSign[el]);
+                if (e.target.value.length == 0) {
+                    e.target.name = 'Select aspects';
+                }
+            });
+            document.querySelector("#tz").addEventListener("change", (e) => {
+                calendar2D.tz = e.target.value;
+                calendar2D.gmtMin = $.getOffset(calendar2D.tz, new Date(calendar2D.year, calendar2D.month));
+                document.querySelector('#GMT').childNodes[0].textContent = 'GMT: ' + $ad.textTZMinToHour(calendar2D.gmtMin) + ' ';
+            });
+            document.querySelector(".grid [name=ephFlag]").value = calendar2D.flag;
+            const month = ((document.querySelector('#month').value < 10) ? '0' : '') + String(document.querySelector('#month').value);
+            const year = document.querySelector('#year').value;
+            const tz = document.querySelector('#tz').value;
+            let utcDate = new Date(String(year) + '-' + month + '-01T00:00:00.000Z');
+            let gmtMin = $.getOffset(tz, utcDate);
+            utcDate = new Date(utcDate.setMinutes(gmtMin));
+
+            calendar2D.dateStart = utcDate.getTime();
+            calendar2D.dateEnd = new Date(utcDate.setMonth(utcDate.getMonth() + 1)).getTime();
+            document.querySelector("[name=dateStart]").valueAsNumber = calendar2D.dateStart;
+            document.querySelector("[name=dateEnd]").valueAsNumber = utcDate;
+            document.querySelector('#periodMonth').addEventListener("change", (e) => {
+                calendar2D.month = ((document.querySelector('#month').value < 10) ? '0' : '') + String(document.querySelector('#month').value);
+                calendar2D.year = document.querySelector('#year').value;
+                const tz = document.querySelector('#tz').value;
+                let utcDate = new Date(String(calendar2D.year) + '-' + calendar2D.month + '-01T00:00:00.000Z');
+                let gmtMin = $.getOffset(tz, utcDate);
+                utcDate = new Date(utcDate.setMinutes(gmtMin));
+                calendar2D.dateStart = utcDate.getTime();
+                calendar2D.dateEnd = new Date(utcDate.setMonth(utcDate.getMonth() + 1)).getTime();
+                document.querySelector("[name=dateStart]").valueAsNumber = calendar2D.dateStart;
+                document.querySelector("[name=dateEnd]").valueAsNumber = utcDate;
+                calc();
+
+            });
+
+            calendar2D.stepMin = Number(document.querySelector("[name=step]").value);
+            if (!$.dbLoad()) {
+                calendar2D.planets = document.querySelector(".grid #planets").value;
+                calendar2D.aspects = document.querySelector(".grid #aspects").value;
+            };
+            document.querySelector("#graph").addEventListener('afterplot', (e) => {
+                document.querySelector(".calcAstro").value = '▶';
+            });
+            document.querySelectorAll(".trap-block").forEach(elem => {
+                elem.addEventListener("click", (e) => {
+                    if (e.target == document.querySelector(".trap-block.selected")) {
+                        return
+                    }
+                    document.querySelectorAll(".trap-block").forEach(elem => {
+                        elem.classList.remove('selected');
+                    })
+                    document.querySelectorAll(".content").forEach(elem => {
+                        elem.classList.add('none');
+                    })
+
+                    e.target.classList.add('selected');
+                    document.querySelector(".content#" + e.target.getAttribute('name')).classList.remove('none');
+                });
+            });
+            const calc = () => {
+                document.querySelector(".calcAstro").value = '⭕';
+                calendar2D.dateStart = document.querySelector("[name=dateStart]").valueAsNumber;
+                calendar2D.dateEnd = document.querySelector("[name=dateEnd]").valueAsNumber;
+                if (calendar2D.dateEnd < calendar2D.dateTemp) {
+                    calendar2D.dateEnd = calendar2D.dateTemp;
+                    document.querySelector("[name=dateEnd]").valueAsNumber = calendar2D.dateTemp;
+                };
+                calendar2D.planets = document.querySelector(".grid #planets").value;
+                calendar2D.aspects = document.querySelector(".grid #aspects").value;
+                calendar2D.stepMin = Number(document.querySelector("[name=step]").value);
+                calendar2D.flag = Number(document.querySelector(".grid [name=ephFlag]").value);
+                calendar2D['out'] = {};
+                $.dbSave(calendar2D);
+                setTimeout(() => {
+                    if (document.getElementById('graph').removeAllListeners) {
+                        document.getElementById('graph').removeAllListeners();
+                    };
+                    document.getElementById('textCalendar').calcObj(calendar2D);
+                });
+
+            }
+            document.querySelector(".calcAstro").addEventListener('click', (e) => {
+                calc();
+            });
+            const HTMLtext = document.getElementById('textCalendar');
+            HTMLtext.calcObj = (calendar2D) => {
+                let start = Date.now();
+                document.querySelector("#textCalendar").value = ``;
+                const promiseAll = [];
+                const promiseCalc = new Promise((resolve, reject) => {
+                    resolve($.getPlanetPeriod(calendar2D));
+                    reject(undefined);
+                });
+                promiseCalc.then((res) => {
+                    const r = res;
+                    if (document.querySelector('[name=json]').checked) {
+                        const data = calendarToObj(calendar2D);
+                        console.log(JSON.stringify(data));
+                        data.forEach((obj) => {
+                            document.querySelector("#textCalendar").value = document.querySelector("#textCalendar").value +
+                                JSON.stringify(obj) + '\n';
+                        });
+                    };
+                    if (document.querySelector('[name=image]').checked) {
+                        monthGraph('graph', calendar2D)
+                    };
+                });
+                promiseAll.push(promiseCalc);
+                Promise.all(promiseAll).then((res) => {
+                    document.querySelector(".calcAstro").value = '▶';
+                    console.log('▶', (Date.now() - start) / 1000, 'sec');
+                });
+            };
+            HTMLtext.calcObj(calendar2D);
+        });
+    </script>
+    <footer></footer>
+    <script src="/js/fragments/header.js"></script>
+    <script src="/js/fragments/footer.js"></script>
+    <script>
+        document.querySelector('header select[name=nav]').value = window.location.pathname;
+    </script>
+</body>
+
+</html>

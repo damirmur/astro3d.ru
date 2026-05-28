@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Other</title>
+    <style>
+        body {
+            max-width: 600px;
+            font-family: monospace;
+        }
+
+        body * {
+            margin: 0;
+            max-width: 500px;
+        }
+
+        legend {
+            color: blueviolet;
+            cursor: pointer;
+        }
+
+        fieldset {
+            padding: 0;
+        }
+
+        .none {
+            display: none;
+            height: 0;
+        }
+
+
+        .block {
+            border-width: 1px;
+            border-color: rgb(190, 190, 190);
+            border-style: solid;
+        }
+
+        .android {
+            font-size: 15px;
+            font-family: monospace;
+            font-optical-sizing: auto;
+            color: #ddd;
+            -webkit-filter: grayscale(1) invert(1) contrast(4) brightness(2);
+            filter: grayscale(1) invert(1) contrast(4) brightness(2);
+        }
+
+        #moon {
+            width: 50px;
+            height: 50px;
+            background: rgb(170, 177, 153);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* overflow: hidden; */
+            border: 1px solid #000;
+            #sun {
+                margin-left: 50px;
+                width: 50px;
+                height: 100px;
+                background: rgb(255, 255, 255);
+                background:linear-gradient(to right,rgb(170, 177, 153), white);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid #000;
+            }
+        }
+    </style>
+    <script src="js/secret.js"></script>
+    <script src="js/astro/astrodate.js"></script>
+    <script src="js/ephe/Pluto.js"></script>
+    <script src="js/lib/source-0.0.2.js"></script>
+    <script src="js/astro/chart.js"></script>
+    <script src="js/components/geomap.js"></script>
+    <script src="js/components/cities-autocomplete.js"></script>
+    <script src="js/components/select-checkbox-0.0.2.js"></script>
+    <script src="js/lib/leaflet.js"></script>
+    <script src="js/components/chart/chart.js"></script>
+    <script src="js/components/chart/chartIn.js"></script>
+    <script src="js/components/chart/chartSet.js"></script>
+    <script src="js/components/chart/chartOutTab.js"></script>
+    <script src="js/components/chart/chartsDBtreeView.js"></script>
+    <script src="js/components/chart/chartsView.js"></script>
+    <script src="js/components/chart/chartsDBview.js"></script>
+</head>
+
+<body>
+    <fieldset>
+        <legend name="symbol"
+            onclick="this.nextElementSibling.classList.toggle('none');this.textContent=((this.textContent=='📂🖼')?'📁🖼':'📂🖼');"
+            title="Symbols">
+            📁🖼</legend>
+
+        <div class="none" style="font-size: larger;">
+            ←↑→↓↶↷🌐︎🜁🜂🜃🜄🜨♈♉♊♋♌♍♎♏♐♑♒♓☽☾○●◌◯⨀⥀⥁↶↷⭘◔◑◐❨ ❩᳃∎▪●⬤⎕□☐⧠⧆⦙⬠ <br>
+            🖹🗎🗠☸⚙⛭✺✲✻☼🗂🖼📂🗁🗀📁🗙☒🗸🗹🗘🗊📑🗂📜📃📄📰📦📋🗃🗒🗓📆🌀🎲&#8986;&#xfe0e;⌚🔣️🆕️♾️🔤️⚒🛠️⍼🔄⏸ℹ⏺
+            &#9210;&#xfe0e;
+            🖶🖨📇📠💻💾🖫💽📀🔭🔧📝📧🖂🕮📖🖺🗑🗺🐚💳📌📈🔗📡📚📒💼🔐🔑🔒🔓🔮✹✵❂🧘🧮◀▶⏮⏭⏹✅❎➕➖❌⭕👇👆⍲⍱
+            𐅡📷
+            <div class="android">
+                🜁🜂🜃🜄🜨♈♉♊♋♌♍♎♏♐♑♒♓ ☉ ☽ ☿ ♀ ♂ ♃ ♄ ♅ ♆ ♇ ☊ ⚸ ♁ ⚷ &#11227 ⚳ ⚴ ⚵ ⚶ <br>
+                🖹🗎🗠☸⚙🗂🖼📂🗁🗀📁🗙☒🗸🗹🗘🗊📑🗂📜📃📄📰📦📋🗃🗒🗓📆🌀🎲&#8986;&#xfe0e;⌚🔣️🆕️♾️🔤️🛠️⍼🔄⏸ℹ⏺
+                &#9210;&#xfe0e;
+                🖶🖨📇📠💻💾🖫💽📀🔭🔧📝📧🖂🕮📖🖺🗑🗺🐚💳📌📈🔗📡📚📒💼🔐🔑🔒🔓🔮✹✵❂🧘🧮◀▶⏮⏭⏹✅❎➕➖❌⭕👇👆⍲⍱
+                𐅡
+            </div>
+        </div>
+
+    </fieldset>
+    <fieldset>
+        <legend name="db"
+            onclick="this.nextElementSibling.classList.toggle('none');this.textContent=((this.textContent=='📂📰')?'📁📰':'📂📰');"
+            style="cursor: pointer;" title="Charts DB">📂📰</legend>
+        <div class="none">
+            <astro-chartsdbview></astro-chartsdbview>
+        </div>
+    </fieldset>
+
+    <fieldset>
+        <legend
+            onclick="this.nextElementSibling.classList.toggle('none');this.textContent=((this.textContent=='📁❂')?'📂❂':'📁❂');"
+            title="Chart setting">
+            📂❂</legend>
+        <astro-chart></astro-chart>
+    </fieldset>
+    <script>
+        const typeSource = 'net';
+        const planets = Source[typeSource].planets;
+        const types = { "cosmo": "Cosmo", "horo": "Horo", "zod": "Zodiac", "planets": "Planets" };
+        const houses = Source[typeSource].houses;
+        const aspects = Source[typeSource].aspects;
+        const searchCities = Source[typeSource].searchCities;
+        const getAstroData = Source[typeSource].getAstroData;
+        const findTZByLngLat = Source[typeSource].findTZByLngLat;
+        const sourceMap = Source[typeSource].sourceMap;
+        const getOffset = Source[typeSource].getOffset;
+        const viewChart = $ad.tableOutTableChart;
+        const source = {
+            "getAstroData": getAstroData,
+            'searchCities': searchCities,
+            'findTZByLngLat': findTZByLngLat,
+            'sourceMap': sourceMap,
+            'viewChart': viewChart,
+            'planets': planets,
+            'aspects': aspects,
+            'houses': houses,
+            'types': types
+        };
+
+        new Chart().then(res => {
+            source.newChart = res;
+            document.querySelector('astro-chart').source = source;
+            document.querySelector('astro-chartsdbview').source = source;
+            document.querySelector('astro-chart').value = res;
+
+        });
+    </script>
+    <script>
+        setAstrocalc = JSON.parse(localStorage.getItem('settingAstrocalc'));
+        console.log(setAstrocalc);
+    </script>
+    <script>
+        document.querySelector('astro-chartsdbview').value = JSON.parse(localStorage.getItem('db'));
+        document.querySelector('astro-chartsdbview').addEventListener('change', (e) => {
+            if (e.detail.value) {
+                localStorage.setItem('db', JSON.stringify(e.detail));
+            }
+            if (e.detail.chart) {
+                console.log(e.detail.chart);
+            }
+        });
+    </script>
+    <br><br>
+    <div id="moon">
+        <div id="sun">
+        </div>
+    </div>
+    <input type="range" id="moonDay" min="-100" max="50" value="0" step="1" /><label>MoonDay:<label
+            id="moonValue"></label></label>
+    <script>
+        const sun = document.querySelector('#sun');
+//        sun.style.marginLeft = "10px";
+        const value = document.querySelector("#moonValue");
+        const input = document.querySelector("#moonDay");
+        value.textContent = ((Number(input.value)+50)/100*30).toFixed(0);
+        input.addEventListener("input", (event) => {
+            sun.style.marginLeft = event.target.value+"px";
+            value.textContent = ((Number(event.target.value)+50)/100*30).toFixed(0);
+        });
+    </script>
+
+</body>
+
+</html>

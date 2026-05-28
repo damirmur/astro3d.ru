@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Эфемериды, Астрологический период, Астрологическая карта, Астрологический график, Астрология, Астрология 3Д, Астрология 3D, Гороскоп онлайн, Лунный календарь 2023,Лунный календарь 2024, гороскоп 2023, гороскоп 2024, Астрокалендарь 2023, Астрокалендарь 2024, Астрокалендарь онлайн, Лунный календарь 2023,Лунный календарь 2024,Astrocalendar 2023,Astrocalendar 2024, Astrocalendar onlineEphemeris, Astrological chart, Astrology, Astrology 3D, Astrology 3D, Horoscope online, Lunar calendar 2023, Lunar calendar 2024, horoscope 2023, horoscope 2024, Astrological period">
+    <meta name="author" content="astro3D.ru">
+    <title>Календарь 2D</title>
+    <script>
+        const android = (navigator.userAgent.search(/Android|Linux/) > 0) ? true : false;
+    </script>
+    <script type="module" src="/js/start.js"></script>
+    <script src='/js/web_statisic/google.js'></script>
+    <script src='/js/web_statisic/yandex.js'></script>
+    <script src='/js/astro/astrodate-0.0.10.js'></script>
+    <script src='/js/lib/source-0.0.6.js'></script>
+    <script src='/js/components/select-checkbox-0.0.3.js'></script>
+    <!-- <script src="/js/full2334.js"></script> -->
+    <script src="/js/full2425.js"></script>
+    <script src="/js/full2026.js"></script>
+    <script src="/js/lib/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="/css/fragments.css">
+    <link rel="stylesheet" href="/css/calendar2D.css">
+    <style>
+        footer {
+            position: static;
+            bottom: 0;
+        }
+
+        .none {
+            display: none;
+        }
+
+        .tabs-content {
+            text-align: left;
+        }
+
+        #table div{
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header"></header>
+    <div class="center">
+        <div class="work">
+            <div class="grid">
+                <label id="GMT">TZ: <select id="tz"></select></label>
+                <select id="month">
+                    <option value=1>01</option>
+                    <option value=2>02</option>
+                    <option value=3>03</option>
+                    <option value=4>04</option>
+                    <option value=5>05</option>
+                    <option value=6>06</option>
+                    <option value=7>07</option>
+                    <option value=8>08</option>
+                    <option value=9>09</option>
+                    <option value=10>10</option>
+                    <option value=11>11</option>
+                    <option value=12>12</option>
+                </select>
+                <select id="year">
+                    <option value=2023>2023</option>
+                    <option value=2024>2024</option>
+                    <option value=2025>2025</option>
+                    <option value=2026 selected>2026</option>
+                </select>
+                <!-- <label></label> -->
+                <select id="zodiac">
+                    <option value=0 selected></option>
+                </select>
+                <div>
+                    <label id="labelFirstDay">First Day:</label>
+                    <select id="firstDay" title="First day of the week"></select>
+                </div>
+                <select-checkbox id="planets"></select-checkbox>
+                <select-checkbox id="aspects"></select-checkbox>
+            </div>
+
+            <div class="tabs-content">
+                <div class="tabs">
+                    <div name='table' class="trap-block selected">Таблица</div>
+                    <div name="text" class="trap-block">Текст</div>
+                    <div name="graph" class="trap-block">График</div>
+                </div>
+
+                <div id='table' class="content">
+                    <div>
+                        <input type="button" id="saveImage" value="📷">
+                        <div id='tableCalendar'></div>
+                    </div>
+                </div>
+                <div id="text" class="content none">
+                    <div id='textCalendar'>
+                        <textarea rows='30'></textarea><br>
+                    </div>
+                </div>
+                <div id="graph" class="content none">
+                    <img>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- <script type="module"> -->
+    <script>
+
+        function clickEvent(t) {
+            if (t.id) {
+                const body = document.body;
+                const html = document.documentElement;
+                const height = Math.max(body.scrollHeight, body.offsetHeight,
+                    html.clientHeight, html.scrollHeight, html.offsetHeight);
+                const divbg = document.createElement('div');
+                divbg.classList.add('modalbg');
+                divbg.style.height = height;
+                divbg.addEventListener('click', (event) => {
+                    if (divbg == event.target) {
+                        document.body.removeChild(divbg);
+                    }
+                });
+                const div = document.createElement('div');
+                div.classList.add('modal-div');
+                div.innerHTML = t.innerHTML;
+                div.querySelector('h1').outerHTML = `<h2>` + t.id + `<br>` + t.getAttribute('weekday') + `</h2>`;
+                div.addEventListener('click', (event) => {
+                    document.body.removeChild(divbg);
+                });
+                divbg.appendChild(div);
+                document.body.appendChild(divbg);
+            };
+        }
+        addEventListener("load", (event) => {
+            const $ = {
+                getOffset: Source.def.getOffset,
+                localDateJSON: Source.def.localDateJSON,
+                plSign: $ad.plSignChort,
+                aspSign: $ad.aspSign,
+                colorAsp: $ad.colorAsp,
+                zodiac: $ad.zodiac,
+                strZod: $ad.strZod,
+                toFirstUpperCase: $ad.toFirstUpperCase,
+                plStatistic: $ad.plStatistic,
+                textTZMinToHour: $ad.textTZMinToHour,
+                moonDay: $ad.moonDay,
+                dbSave: (data, key = 'calendar2D') => { localStorage.setItem(key, JSON.stringify(data)) },
+                dbLoad: (key = 'calendar2D') => { return JSON.parse(localStorage.getItem(key)) },
+            };
+            let defA3D = $.dbLoad('defA3D');
+            const loc = defA3D.i18n;
+            let calendar2D = {
+                planets: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
+                aspects: ['0', '60', '90', '120', '180'],
+                tz: defA3D.tz,
+                fdw: 0,
+                gmtMin: $.getOffset(defA3D.tz, new Date()),
+                month: (new Date().getMonth() + 1),
+//                month: $ad.zeroPadded(new Date().getMonth() + 1),
+                year: new Date().getFullYear(),
+                sign: 0,
+            };
+            if ($.dbLoad()) {
+                const c = $.dbLoad();
+                calendar2D.planets = c.planets || calendar2D.planets;
+                calendar2D.aspects = c.aspects || calendar2D.aspects;
+                calendar2D.tz = c.tz || calendar2D.tz;
+                calendar2D.gmtMin = c.gmtMin || calendar2D.gmtMin;
+                calendar2D.fdw = c.fdw || calendar2D.fdw;
+                calendar2D.sign = c.sign || calendar2D.sign;
+            };
+            Intl.supportedValuesOf('timeZone').forEach((el) => {
+                let option = document.createElement("option");
+                option.text = el;
+                option.value = el;
+                document.querySelector('#tz').add(option);
+            });
+            Array.from(Array(12), (el, i) => loc.zodiac[String(i)]).forEach((el, i) => {
+                let option = document.createElement("option");
+                option.text = $.toFirstUpperCase(el);
+                option.value = String(i + 1);
+                document.querySelector('#zodiac').add(option);
+            });
+            document.querySelector('#tz').value = calendar2D.tz;
+            document.querySelector('#year').value = calendar2D.year;
+            document.querySelector('#month').value = calendar2D.month;
+            document.querySelector('#GMT').childNodes[0].textContent = 'GMT: ' + $.textTZMinToHour(calendar2D.gmtMin) + ' ';
+            const calendar = (calendar2D) => {
+                const month = ((calendar2D.month < 10) ? '0' : '') + String(calendar2D.month);
+                let utcDate = new Date(String(calendar2D.year) + '-' + month + '-01T00:00:00.000Z');
+                let startDate = new Date(utcDate.setMinutes(calendar2D.gmtMin)).toJSON().slice(0, 13);
+                utcDate = new Date(String(calendar2D.year) + '-' + month + '-01T00:00:00.000Z');
+                let endDate = new Date(utcDate.setMonth(utcDate.getMonth() + 1)).toJSON().slice(0, 13);
+                let allEvents = (calendarjson[202425] || []).concat(calendarjson[2026] || []);
+                calendar2D.dataMonth = allEvents.filter((el) => (el.d >= startDate) && (el.d <= endDate));
+                return calendar2D.dataMonth;
+            }
+            const calendarTab = (elem, calendar2D) => {
+                const createTableCalendar = (elem, calendar2D) => {
+                    const getDay = (date, firstDay = calendar2D.fdw) => {
+                        let day = date.getDay();
+                        return (day - firstDay) + ((day <= firstDay) ? 6 : -1)
+                    };
+                    let temp = new Date(2023, 9, 2 + calendar2D.fdw);
+                    let table = `<table><tr><th>` + $.toFirstUpperCase(temp.toLocaleString(defA3D.locale, { weekday: 'long' }));
+                    for (let i = 0; i < 6; i++) {
+                        temp.setDate(temp.getDate() + 1)
+                        table += `</th><th>` + $.toFirstUpperCase(temp.toLocaleString(defA3D.locale, { weekday: 'long' }));
+                    }
+                    let mon = calendar2D.month - 1;
+                    temp = ``;
+                    if (calendar2D.sign > 0) {
+                        const sel = document.getElementById("zodiac");
+                        temp = sel.options[sel.selectedIndex].text + ` `;
+                    }
+                    temp += new Date(calendar2D.year, mon, 2).toLocaleDateString(defA3D.locale, { year: "numeric", month: "long" });//"2-digit"
+                    let gmt = 'GMT: ' + $.textTZMinToHour(calendar2D.gmtMin) + ' ';
+                    table += `</th></tr><tr class=tablehead><td colspan=6><h2>` +
+                        (temp).toUpperCase() + ` ` + gmt + `</h2></td><td><h3>Astro3D.ru</h2></t3></tr>`;
+
+                    let d = new Date(calendar2D.year, mon);
+                    for (let i = 0; i < getDay(d); i++) {
+                        table += `<td></td>`;
+                    }
+                    while (d.getMonth() == mon) {
+                        let moonday;
+                        if (d.getFullYear() >= 2026 && calendarjson[d.getFullYear()]) {
+                            let ts = d.getTime();
+                            let lastLunD = $.moonDay(d.toLocaleDateString("ru-RU", { 'timeZone': calendar2D.tz, year: "numeric", month: "2-digit", day: "2-digit" }));
+                            let evs = calendarjson[d.getFullYear()];
+                            for (let i = 0; i < evs.length; i++) {
+                                let ev = evs[i];
+                                if (ev.t === 'lunD') {
+                                    let evTime = new Date(ev.d + ':00.000Z').getTime();
+                                    if (evTime <= ts) {
+                                        lastLunD = ev.s;
+                                    } else {
+                                        break;
+                                    }
+                                }
+                            }
+                            moonday = lastLunD;
+                        } else {
+                            moonday = $.moonDay(d.toLocaleDateString("ru-RU", { 'timeZone': calendar2D.tz, year: "numeric", month: "2-digit", day: "2-digit" }));
+                        }
+                        const moon = ((moonday > 15) ? '☾' : '☽');
+                        table += `<td id=` + d.toLocaleDateString(defA3D.locale) + ` onclick='clickEvent(this);'` + ` weekday=` + $.toFirstUpperCase(d.toLocaleString(defA3D.locale, { weekday: 'long' })) + `><h1>` + d.getDate() +
+                            `</h1><br><h4>` + moonday + `&nbsp;` + loc.moon.md + `,&nbsp;`;
+                        switch (moonday) {
+                            case 0:
+                                table += loc.moon['n'];
+                                break;
+                            case 30:
+                                table += loc.moon['n'];
+                                break;
+                            case 1:
+                                table += loc.moon['n'];
+                                break;
+                            case 14:
+                                table += loc.moon['f'];
+                                break;
+                            case 15:
+                                table += loc.moon['f'];
+                                break;
+                            case 16:
+                                table += loc.moon['f'];
+                                break;
+                            default: {
+                                if (moonday < 7) { table += loc.moon['1'] }
+                                else if (moonday < 14) { table += loc.moon['2'] }
+                                else if (moonday < 21) { table += loc.moon['3'] }
+                                else if (moonday < 30) { table += loc.moon['4'] };
+                            }
+                                break;
+                        }
+                        table += `,&nbsp;` + moon + `</h4></td>`;
+                        table += ((d.toLocaleDateString() == new Date().toLocaleDateString()) ? `` : ``) + ``;
+                        if (getDay(d) % 7 == 6) { // вс, последний день - перевод строки
+                            table += `</tr><tr>`;
+                        }
+                        d.setDate(d.getDate() + 1);
+                    }
+                    if (getDay(d) != 0) {
+                        for (let i = getDay(d); i < 7; i++) {
+                            table += `<td></td>`;
+                        }
+                    }
+                    table += `</tr></table>`;
+                    elem.innerHTML = table;
+                };
+                elem.innerHTML = ``;
+                createTableCalendar(elem, calendar2D);
+                let dateSting = new Date((calendarjson[202425] || calendarjson[2026])[0].d + ':00.000Z').toLocaleDateString(defA3D.locale, { 'timeZone': calendar2D.tz });
+                calendar2D.dataMonth.forEach((obj) => {
+                    if (!document.getElementById(new Date(obj.d + ':00.000Z').toLocaleDateString(defA3D.locale, { 'timeZone': calendar2D.tz }))) { return };
+                    if (obj.t !== 'lunD' && !(calendar2D.planets.includes(String(obj.p[0])))) { return };
+                    if (obj.t == 'exA') {
+                        if (!(calendar2D.planets.includes(String(obj.p[1])))) { return };
+                        if (!(calendar2D.aspects.includes(String(obj.a)))) { return }
+                    };
+                    let text = '';
+                    if (!(dateSting == new Date(obj.d + ':00.000Z').toLocaleDateString(defA3D.locale, { 'timeZone': calendar2D.tz }))) {
+                        dateSting = new Date(obj.d + ':00.000Z').toLocaleDateString(defA3D.locale, { 'timeZone': calendar2D.tz });
+                    };
+                    text += new Date(obj.d + ':00.000Z').toLocaleTimeString(defA3D.locale, { 'timeZone': calendar2D.tz, hour: "2-digit", minute: "2-digit" }) + `&nbsp;`;
+                    const moonday = $.moonDay(new Date(obj.d + ':00.000Z').toLocaleDateString("ru-RU", { 'timeZone': calendar2D.tz, year: "numeric", month: "2-digit", day: "2-digit" }));
+                    const moon = ((moonday > 15) ? '☾' : '☽');
+                    switch (obj.t) {
+                        case "lunD":
+                            text += `<span style=color:gray;>→&nbsp;` + obj.s + `&nbsp;` + loc.moon.md + `</span>\n`;
+                            break;
+                        case "exA":
+                            if (calendar2D.sign == 0) {
+                                text += (`<span style=color:` + $ad.hexToRGB($ad.colorAsp[obj.a], 1) + `;>⬤</span>`) +
+                                    `<span ` + ((android) ? (`class='android'`) : (``)) + `>` +
+                                    ((obj.p[0] == '1') ? moon : $.plSign[obj.p[0]]) + `(` +
+                                    ((android) ? `<img class='android' src=/img/zodiac/` + $ad.strZod([obj.de[0], 1]).sign + `.png>` : $.zodiac.sign[$ad.strZod([obj.de[0], 1]).sign]) +
+                                    `)&nbsp;` +
+                                    $.aspSign[obj.a] + `&nbsp;` + $.plSign[obj.p[1]] + `(` +
+                                    ((android) ? `<img class='android' src=/img/zodiac/` + $ad.strZod([obj.de[1], 1]).sign + `.png>` : $.zodiac.sign[$ad.strZod([obj.de[1], 1]).sign]) +
+                                    `)</span>\n`;
+                            } else {
+                                text += (`<span style=color:` + $ad.hexToRGB($ad.colorAsp[obj.a], 1) + `;>⬤</span>`) +
+                                    `<span>` +
+                                    ((obj.p[0] == '1') ? moon : $.plSign[obj.p[0]]) + `(` +
+                                    (($ad.strZod([obj.de[0], 1]).sign + 2 - calendar2D.sign > 0) ? ($ad.strZod([obj.de[0], 1]).sign + 2 - calendar2D.sign) : $ad.strZod([obj.de[0], 1]).sign + 14 - calendar2D.sign) +
+                                    `)&nbsp;` +
+                                    $.aspSign[obj.a] + `&nbsp;` + $.plSign[obj.p[1]] + `(` +
+                                    (($ad.strZod([obj.de[1], 1]).sign + 2 - calendar2D.sign > 0) ? ($ad.strZod([obj.de[1], 1]).sign + 2 - calendar2D.sign) : $ad.strZod([obj.de[1], 1]).sign + 14 - calendar2D.sign) +
+                                    `)</span>\n`;
+                            }
+                            break;
+                        case "r":
+                            text += $.plSign[obj.p[0]] + `&nbsp→&nbsp` + ((obj.r == 1) ? 'R' : 'D') + '\n';
+                            break;
+                        case "chS":
+                            text += ((obj.p[0] == '1') ? moon : $.plSign[obj.p[0]]) + `&nbsp→&nbsp` +
+                                ((android) ? (`<img class='android' src=/img/zodiac/` + obj.s + `.png>`) : $.zodiac.sign[obj.s]) +
+                                '\n';
+                            break;
+                        case "noC":
+                            text += '-' + moon + ' ' + new Date(obj.chS + ':00.000Z').toLocaleTimeString(defA3D.locale, { 'timeZone': calendar2D.tz, hour: "2-digit", minute: "2-digit" })
+                            if (!(dateSting == new Date(obj.chS + ':00.000Z').toLocaleDateString(defA3D.locale, { 'timeZone': calendar2D.tz }))) {
+                                text += ' ' + new Date(obj.chS + ':00.000Z').toLocaleDateString(defA3D.locale, { 'timeZone': calendar2D.tz, month: "2-digit", day: "2-digit" });
+                            }
+                            break;
+                        default:
+                            text += '\n';
+                            break;
+                    };
+                    document.getElementById(new Date(obj.d + ':00.000Z').toLocaleDateString(defA3D.locale, { 'timeZone': calendar2D.tz })).innerHTML += `<br><h4>` + text + `</h4>`;
+                });
+            };
+            const calendarText = (elem, calendar2D) => {
+                const optionsLocaleDateString = {
+                    'timeZone': calendar2D.tz,
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                };
+                elem.querySelector('textarea').value = ``;
+                let dateSting = ``;
+                let moonday = $.moonDay(new Date(calendar2D.dataMonth[0].d + ':00.000Z').toLocaleDateString(defA3D.locale, { 'timeZone': calendar2D.tz, year: "numeric", month: "2-digit", day: "2-digit" }));
+                calendar2D.dataMonth.forEach((obj) => {
+                    if (calendar2D.month != (new Date(obj.d + ':00.000Z').toLocaleDateString(defA3D.locale, { 'timeZone': calendar2D.tz, month: "2-digit" }))) { return };
+                    if (obj.t !== 'lunD' && !(calendar2D.planets.includes(String(obj.p[0])))) { return };
+                    if (obj.t == 'exA') {
+                        if (!(calendar2D.planets.includes(String(obj.p[1])))) { return };
+                        if (!(calendar2D.aspects.includes(String(obj.a)))) { return }
+                    };
+                    let textHead = ``;
+                    let textMoon = ``;
+                    let text = ``;
+                    if (!(dateSting == new Date(obj.d + ':00.000Z').toLocaleDateString(defA3D.locale, optionsLocaleDateString))) {
+                        dateSting = new Date(obj.d + ':00.000Z').toLocaleDateString(defA3D.locale, optionsLocaleDateString);
+                        textHead += `\n` + dateSting + `\n`;
+                        moonday = $.moonDay(new Date(obj.d + ':00.000Z').toLocaleDateString("ru-RU", { 'timeZone': calendar2D.tz, year: "numeric", month: "2-digit", day: "2-digit" }));
+                        textMoon += `\n` + moonday + ` ` + loc.moon['md'];
+                        switch (moonday) {
+                            case 0:
+                                textMoon += ` ` + loc.moon['n'] + ` `;
+                                break;
+                            case 30:
+                                textMoon += ` ` + loc.moon['n'] + ` `;
+                                break;
+                            case 1:
+                                textMoon += ` ` + loc.moon['n'] + ` `;
+                                break;
+                            case 14:
+                                textMoon += ` ` + loc.moon['f'] + ` `;
+                                break;
+                            case 15:
+                                textMoon += ` ` + loc.moon['f'] + ` `;
+                                break;
+                            case 16:
+                                textMoon += ` ` + loc.moon['f'] + ` `;
+                                break;
+                            default: {
+                                if (moonday < 7) { textMoon += ` ` + loc.moon['1'] + `, ` + loc.moon['i'] }
+                                else if (moonday < 14) { textMoon += ` ` + loc.moon['2'] + `, ` + loc.moon['i'] }
+                                else if (moonday < 21) { textMoon += ` ` + loc.moon['3'] + `, ` + loc.moon['d'] }
+                                else if (moonday < 30) { textMoon += ` ` + loc.moon['4'] + `, ` + loc.moon['d'] };
+                            }
+                                break;
+                        }
+                        textMoon += `\n\n`;
+                    };
+                    text += new Date(obj.d + ':00.000Z').toLocaleTimeString(defA3D.locale, { 'timeZone': calendar2D.tz, hour: "2-digit", minute: "2-digit" }) + ` `;
+                    const moon = ((moonday > 15) ? '☾' : '☽');
+                    switch (obj.t) {
+                        case "lunD":
+                            text += `→ ` + obj.s + ` ` + loc.moon.md + `\n`;
+                            break;
+                        case "exA":
+                            if (calendar2D.sign == 0) {
+                                text += loc.planets[obj.p[0]] + `(` + loc.zodiac[$ad.strZod([obj.de[0], 1]).sign] + `)` + ` ` +
+                                    loc.aspects[obj.a] + ` ` + loc.planets[obj.p[1]] + `(` + loc.zodiac[$ad.strZod([obj.de[1], 1]).sign] + `)\n`;
+                            } else {
+                                text += loc.planets[obj.p[0]] + `(` +
+                                    (($ad.strZod([obj.de[0], 1]).sign + 2 - calendar2D.sign > 0) ? ($ad.strZod([obj.de[0], 1]).sign + 2 - calendar2D.sign) : $ad.strZod([obj.de[0], 1]).sign + 14 - calendar2D.sign) +
+                                    `) ` +
+                                    loc.aspects[obj.a] + ` ` + loc.planets[obj.p[1]] + `(` +
+                                    (($ad.strZod([obj.de[1], 1]).sign + 2 - calendar2D.sign > 0) ? ($ad.strZod([obj.de[1], 1]).sign + 2 - calendar2D.sign) : $ad.strZod([obj.de[1], 1]).sign + 14 - calendar2D.sign) +
+                                    `)\n`;
+                            }
+                            break;
+                        case "r":
+                            text += loc.planets[obj.p[0]] + ` ` + ((obj.r == 1) ? loc.events['r'] : loc.events['d']) + '\n';
+                            break;
+                        case "chS":
+                            text += loc.planets[obj.p[0]] + ` ` + loc.events['chS'] + ` ` + loc.zodiac[obj.s] + '\n';
+                            break;
+                        case "noC":
+                            text += loc.planets[1] + ` ` + loc.events['noC'] + ` ` + new Date(obj.chS + ':00.000Z').toLocaleTimeString(defA3D.locale, { 'timeZone': calendar2D.tz, hour: "2-digit", minute: "2-digit" })
+                            if (!(dateSting == new Date(obj.chS + ':00.000Z').toLocaleDateString(defA3D.locale, { 'timeZone': calendar2D.tz }))) {
+                                text += ' ' + new Date(obj.chS + ':00.000Z').toLocaleDateString(defA3D.locale, { 'timeZone': calendar2D.tz, month: "2-digit", day: "2-digit" });
+                            }
+                            text += '\n';
+                            break;
+                        default:
+                            text += '\n';
+                            break;
+                    };
+                    document.querySelector('textarea').value += (textHead + textMoon + text);
+                });
+            };
+            let temp = new Date(2023, 9, 2);
+            for (let i = 0; i < 7; i++) {
+                let option = document.createElement("option");
+                option.text = $.toFirstUpperCase(temp.toLocaleString(defA3D.locale, { weekday: 'long' }));
+                option.value = i;
+                document.querySelector('#firstDay').add(option);
+                temp.setDate(temp.getDate() + 1)
+            };
+            for (let child of document.querySelector('#month').options) {
+                child.text = $.toFirstUpperCase(new Date(2023, child.value - 1, 5).toLocaleString(defA3D.locale, { month: "long" }));
+            };
+            document.querySelector('#graph img').src = '/img/calendar/' + defA3D.locale.slice(0, 2) + '/' + String(calendar2D.year) +
+                new Date(calendar2D.year, calendar2D.month - 1, 2).toLocaleDateString(defA3D.locale, { month: "2-digit" }) + '.png';
+            document.querySelectorAll(".trap-block").forEach(elem => {
+                elem.textContent = $.toFirstUpperCase(loc.ui[elem.getAttribute('name')]);
+            });
+            document.querySelectorAll(".trap-block").forEach(elem => {
+                elem.addEventListener("click", (e) => {
+                    if (e.target == document.querySelector(".trap-block.selected")) {
+                        return
+                    }
+                    document.querySelectorAll(".trap-block").forEach(elem => {
+                        elem.classList.remove('selected');
+                    })
+                    document.querySelectorAll(".content").forEach(elem => {
+                        elem.classList.add('none');
+                    })
+
+                    e.target.classList.add('selected');
+                    document.querySelector(".content#" + e.target.getAttribute('name')).classList.remove('none');
+                });
+            });
+            document.querySelector("#saveImage").addEventListener("click", (e) => {
+                html2canvas(document.querySelector("#tableCalendar")).then(canvas => {
+                    let canvasUrl = canvas.toDataURL("image/png", 1);
+                    const createEl = document.createElement('a');
+                    createEl.href = canvasUrl;
+                    createEl.download = document.querySelector('#month').options[document.querySelector('#month').selectedIndex].text +
+                        document.querySelector('#year').options[document.querySelector('#year').selectedIndex].text + document.querySelector('#tz').value;
+                    createEl.click();
+                    createEl.remove();
+                });
+            });
+
+            document.querySelector(".grid #planets").obj = $.plSign;
+            document.querySelector(".grid #planets").value = calendar2D.planets;
+            document.querySelector(".grid #planets").name = Array.from(calendar2D.planets, (el) => $.plSign[el]);
+            if (document.querySelector(".grid #planets").value.length == 0) {
+                document.querySelector(".grid #planets").name = 'Select planets';
+            }
+            document.querySelector(".grid #planets").addEventListener("change", (e) => {
+                calendar2D.planets = e.target.value;
+                e.target.name = Array.from(calendar2D.planets, (el) => $.plSign[el]);
+                if (e.target.value.length == 0) {
+                    e.target.name = 'Select planets';
+                };
+                document.dispatchEvent(new Event("change", { bubbles: true, cancelable: false }));
+            });
+            document.querySelector(".grid #aspects").obj = $.aspSign;
+            document.querySelector(".grid #aspects").value = calendar2D.aspects;
+            document.querySelector(".grid #aspects").name = Array.from(calendar2D.aspects, (el) => $.aspSign[el]);
+            if (document.querySelector(".grid #aspects").value.length == 0) {
+                document.querySelector(".grid #aspects").name = 'Select aspects';
+            }
+            document.querySelector(".grid #aspects").addEventListener("change", (e) => {
+                calendar2D.aspects = e.target.value;
+                e.target.name = Array.from(calendar2D.aspects, (el) => $.aspSign[el]);
+                if (e.target.value.length == 0) {
+                    e.target.name = 'Select aspects';
+                };
+                document.dispatchEvent(new Event("change", { bubbles: true, cancelable: false }));
+            });
+            document.querySelector(".grid #tz").addEventListener("change", (e) => {
+                calendar2D.tz = e.target.value;
+                calendar2D.gmtMin = $.getOffset(calendar2D.tz, new Date(calendar2D.year, calendar2D.month));
+                document.querySelector('#GMT').childNodes[0].textContent = 'GMT: ' + $.textTZMinToHour(calendar2D.gmtMin) + ' ';
+            });
+            document.querySelector(".grid #firstDay").value = calendar2D.fdw;
+            document.querySelector(".grid #firstDay").addEventListener("change", (e) => {
+                calendar2D.fdw = Number(e.target.value);
+            });
+            document.querySelector(".grid #zodiac").value = calendar2D.sign;
+            document.querySelector(".grid #zodiac").addEventListener("change", (e) => {
+                calendar2D.sign = Number(e.target.value);
+            });
+
+            document.querySelector(".grid #month").addEventListener("change", (e) => {
+                calendar2D.month = Number(e.target.value);
+            });
+            document.querySelector(".grid #year").addEventListener("change", (e) => {
+                calendar2D.year = Number(e.target.value);
+            });
+            addEventListener("change", (event) => {
+                calendar(calendar2D);
+                calendarTab(document.querySelector('#tableCalendar'), calendar2D);
+                calendarText(document.querySelector('#textCalendar'), calendar2D);
+                document.querySelector('#graph img').src = '/img/calendar/' + defA3D.locale.slice(0, 2) + '/' + String(calendar2D.year) +
+                    new Date(calendar2D.year, calendar2D.month - 1, 2).toLocaleDateString(defA3D.locale, { month: "2-digit" }) + '.png';
+                calendar2D.dataMonth = {};
+                $.dbSave(calendar2D);
+            });
+            calendar(calendar2D);
+            calendarTab(document.querySelector('#tableCalendar'), calendar2D);
+            calendarText(document.querySelector('#textCalendar'), calendar2D);
+            document.getElementById(new Date().toLocaleDateString(defA3D.locale)).onclick();
+
+        });
+    </script>
+    <footer></footer>
+    <script type="module" src="/js/fragments/header.js"></script>
+    <script type="module" src="/js/fragments/footer.js"></script>
+    <script type="module">
+        document.querySelector('header select[name=nav]').value = window.location.pathname;
+    </script>
+</body>
+
+</html>

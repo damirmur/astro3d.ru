@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Эфемериды, Астрологический период, Астрологическая карта, Астрологический график, Астрология, Астрология 3Д, Астрология 3D, Гороскоп онлайн, Лунный календарь 2023,Лунный календарь 2024, гороскоп 2023, гороскоп 2024, Астрокалендарь 2023, Астрокалендарь 2024, Астрокалендарь онлайн, Лунный календарь 2023,Лунный календарь 2024,Astrocalendar 2023,Astrocalendar 2024, Astrocalendar onlineEphemeris, Astrological chart, Astrology, Astrology 3D, Astrology 3D, Horoscope online, Lunar calendar 2023, Lunar calendar 2024, horoscope 2023, horoscope 2024, Astrological period">
+    <meta name="author" content="astro3D.ru">
+    <title>Карта-период 2D</title>
+    <script type="module" src="./js/start.js"></script>
+    <script>
+        (() => {
+            let script = document.createElement('script');
+            script.setAttribute("src", './js/astro2D.js?v=' + new Date().toJSON());
+            script.setAttribute("charset", 'utf-8');
+            document.head.append(script);
+        })();
+    </script>
+    <link rel="stylesheet" href="/css/fragments.css">
+    <link rel="stylesheet" href="/css/pie2D.css">
+</head>
+
+<body>
+    <header id="header" class="header"></header>
+    <div class="center">
+        <div class="work">
+            <div class="grid">
+                <label>Locale for: <input name="dateStart" type="datetime-local"></label>
+                <label>to: <input name="dateEnd" type="date"></label>
+                <label>step:
+                    <select name="step"
+                        title="Warning! Choosing a small value can greatly increase computation time and slow down the program.">
+                        <option value="1">1 min</option>
+                        <option value="30">30 min</option>
+                        <option value="60">1 hour</option>
+                        <option value="720">12 h</option>
+                        <option value="1440" selected>1 day</option>
+                        <option value="43830">1 month</option>
+                        <option value="262980">½ year</option>
+                    </select></label>
+                <input class="calcAstro" name="button" value="▶" type="button">
+                <select-checkbox id="planets"></select-checkbox>
+                <select-checkbox id="aspects"></select-checkbox>
+                <select name="ephFlag">
+                    <option value="260" selected>Topo</option>
+                    <option value="268">Gelio</option>
+                </select>
+            </div>
+            <div id="chart">
+                <h3>Идет загрузка астропроцессора ...</h3>
+            </div>
+        </div>
+    </div>
+    <script type="module">
+        addEventListener("load", (event) => {
+            const $ = {
+                getPlanetPeriod: Source.def.getPlanetPeriod,
+                getAstroData: Source.def.getAstroData,
+                getOffset: Source.def.getOffset,
+                localDateJSON: Source.def.localDateJSON,
+                plSign: $ad.plSignChort,
+                aspSign: $ad.aspSign,
+                colorAsp: $ad.colorAsp,
+                orbRadix: $ad.OrbRadix,
+                orbTpansit: $ad.OrbTpansit,
+                aspectRadix: $ad.aspectRadixArr,
+                zodiac: $ad.zodiac,
+                strZod: $ad.strZod,
+                hexToRGB: $ad.hexToRGB,
+                plStatistic: $ad.plStatistic,
+                dbSave: (data, key = 'setPie2D') => { localStorage.setItem(key, JSON.stringify(data)) },
+                dbLoad: (key = 'setPie2D') => { return JSON.parse(localStorage.getItem(key)) },
+            };
+            let defA3D = $.dbLoad('defA3D');
+            let setPie2D = ($.dbLoad()) ? $.dbLoad() : {
+                planets: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12],
+                aspects: [0, 60, 90, 120, 180],
+                flag: 260 //260|268 =((Swe.SEFLG_SPEED | Swe.SEFLG_MOSEPH))|((Swe.SEFLG_SPEED | Swe.SEFLG_MOSEPH|Swe.SEFLG_HELCTR ))
+            };
+            document.querySelector(".grid #planets").obj = $.plSign;
+            document.querySelector(".grid #planets").value = setPie2D.planets;
+            document.querySelector(".grid #planets").name = Array.from(setPie2D.planets, (el) => $.plSign[el]);
+            if (document.querySelector(".grid #planets").value.length == 0) {
+                document.querySelector(".grid #planets").name = 'Select planets';
+            }
+            document.querySelector(".grid #planets").addEventListener("change", (e) => {
+                setPie2D.planets = e.target.value;
+                e.target.name = Array.from(setPie2D.planets, (el) => $.plSign[el]);
+                if (e.target.value.length == 0) {
+                    e.target.name = 'Select planets';
+                }
+            });
+            document.querySelector(".grid #aspects").obj = $.aspSign;
+            document.querySelector(".grid #aspects").value = setPie2D.aspects;
+            document.querySelector(".grid #aspects").name = Array.from(setPie2D.aspects, (el) => $.aspSign[el]);
+            if (document.querySelector(".grid #aspects").value.length == 0) {
+                document.querySelector(".grid #aspects").name = 'Select aspects';
+            }
+            document.querySelector(".grid #aspects").addEventListener("change", (e) => {
+                setPie2D.aspects = e.target.value;
+                e.target.name = Array.from(setPie2D.aspects, (el) => $.aspSign[el]);
+                if (e.target.value.length == 0) {
+                    e.target.name = 'Select aspects';
+                }
+            });
+            document.querySelector(".grid [name=ephFlag]").value = setPie2D.flag;
+            const newDateLocal = () => {
+                const dt = new Date();
+                //                dt.setMinutes(dt.getMinutes() - dt.getTimezoneOffset());
+                return dt.toISOString().slice(0, 16);
+            };
+            const endDateLocal = (valueAsNumber, stepMin = (1440 * 365.25)) => {
+                const dt = new Date(valueAsNumber);
+                dt.setMinutes(dt.getMinutes() + stepMin);
+                return dt.toISOString().slice(0, 10);
+            };
+            document.querySelector("[name=dateStart]").value = newDateLocal();
+            setPie2D.dateStart = document.querySelector("[name=dateStart]").valueAsNumber;
+            document.querySelector("[name=dateEnd]").value = endDateLocal(setPie2D.dateStart);
+            setPie2D.dateEnd = document.querySelector("[name=dateEnd]").valueAsNumber;
+            setPie2D.stepMin = Number(document.querySelector("[name=step]").value);
+            if (!$.dbLoad()) {
+                setPie2D.planets = document.querySelector(".grid #planets").value;
+                setPie2D.aspects = document.querySelector(".grid #aspects").value;
+            };
+            document.querySelector("#chart").addEventListener('afterplot', (e) => {
+                document.querySelector(".calcAstro").value = '▶';
+            });
+            document.querySelector(".calcAstro").addEventListener('click', (e) => {
+                setPie2D['out'] = {};
+                $.dbSave(setPie2D);
+                e.target.value = '⭕';
+                setPie2D.dateStart = document.querySelector("[name=dateStart]").valueAsNumber;
+                setPie2D.dateEnd = document.querySelector("[name=dateEnd]").valueAsNumber;
+                if (setPie2D.dateEnd < setPie2D.dateTemp) {
+                    setPie2D.dateEnd = setPie2D.dateTemp;
+                    document.querySelector("[name=dateEnd]").valueAsNumber = setPie2D.dateTemp;
+                };
+                setPie2D.planets = document.querySelector(".grid #planets").value;
+                setPie2D.aspects = document.querySelector(".grid #aspects").value;
+                setPie2D.stepMin = Number(document.querySelector("[name=step]").value);
+                setPie2D.flag = Number(document.querySelector(".grid [name=ephFlag]").value);
+                setPie2D['out'] = {};
+                $.dbSave(setPie2D);
+                setTimeout(() => {
+                    document.getElementById('chart').removeAllListeners();
+                    document.getElementById('chart').indata = setPie2D;
+                    document.getElementById('chart').calc(0);
+                });
+            });
+            const HTML = document.getElementById('chart');
+            HTML.textContent = ``;
+            HTML.indata = setPie2D;
+            HTML.calc = (current = 0) => {
+                const calcAsp = (data, current = 0, config) => {
+                    const pls0 = Array.from(data.planets, (el) => el = [el, [data.out.planets[el][current]]]);
+                    return $.aspectRadix(pls0, data.aspects)
+                };
+                const calcElements = (data, current = 0) => {
+                    const plsToCrsEls = ((arrPls) => {
+                        const arrElsCrs = [[0, 4, 8], [9, 1, 5], [6, 10, 2], [3, 7, 11]];
+                        let arrStat = [[[], [], []], [[], [], []], [[], [], []], [[], [], []]];
+                        arrPls.forEach(pl => {
+                            if ($ad.plStatistic.includes(pl[0])) {
+                                let sign = ~~(pl[1][0] / 30);
+                                for (let i = 0; i < arrElsCrs.length; i++) {
+                                    for (let j = 0; j < arrElsCrs[i].length; j++) {
+                                        if (sign === arrElsCrs[i][j]) {
+                                            arrStat[i][j].push($.plSign[pl[0]]);
+                                        }
+                                    }
+                                }
+                            }
+                        })
+                        return arrStat;
+                    })
+                    return plsToCrsEls(Array.from(data.planets, (el) => el = [Number(el), [data.out.planets[el][current]]]));
+                };
+                const posRadixPl = (planets, sizePosdeg = 4) => {//radix2D.chart.out.planets
+                    const objPos = {};
+                    let arrSort = $ad.planetSortByDegree(planets) || [];
+                    let currentPos = -1;
+                    arrSort.forEach((el, i) => {
+                        let pos = ~~(el[1][0] / sizePosdeg);
+                        pos = (currentPos >= pos) ? (currentPos + 1) : pos;
+                        objPos[el[0]] = pos * sizePosdeg + sizePosdeg / 2;
+                        currentPos = pos;
+                    })
+                    const arrPos = Array.from(planets, (el) => [el[0], el[1], objPos[el[0]]]);
+                    return arrPos;
+                };
+                const hoverAsp = (el) => {
+                    const text = $.plSign[el[0][0]] + ` ` + $ad.aspName[el[2].asp] + ` ` + $.plSign[el[1][0]] + ` ` + Math.abs(el[2].asp - el[2].degree).toFixed(2) + ` ` + `<br>` +
+                        $.plSign[el[0][0]] + ` ` + $.strZod([plsPeriod[el[0][0]][current], speedPeriod[el[0][0]][current]]).text + ` ` + speedPeriod[el[0][0]][current].toFixed(2) + `<br>` +
+                        $.plSign[el[1][0]] + ` ` + $.strZod([plsPeriod[el[1][0]][current], speedPeriod[el[1][0]][current]]).text + ` ` + speedPeriod[el[1][0]][current].toFixed(2)
+                    return text;
+                };
+                let config = {
+                    width: document.querySelector('#chart').clientWidth,
+                    height: document.querySelector('#chart').clientWidth,
+                    displaylogo: false,
+                    modeBarButtonsToRemove: ['zoom2d', 'pan2d', 'select2d', 'lasso2d', 'zoomIn2d', 'zoomOut2d'],
+                    locale: 'ru',
+                    zodes: {
+                        tickvals: [...$.zodiac.degree],
+                        ticktext: $.zodiac.emoji,
+                    },
+                    hole: 1,
+                    planets: {
+                        r: { 'out': 0.9, 'in': 0.7 },
+                        moon: { visible: false, },
+                    },
+                    aspects: {
+                        r: { 'out': 0.8, 'in': 0.7 },
+                        color: $.colorAsp,
+                    }
+                };
+                let data = HTML.indata;
+                let layout = HTML.layout;
+                data = $.getPlanetPeriod(data, data.flag);
+                let plsPeriod = data.out.planets;
+                let speedPeriod = data.out.speed;
+                const data0 = data.dateStart - (data.dateEnd - data.dateStart) * config.hole;//0
+                const rImages = .09 + (.43 * config.hole / (config.hole + 1));
+                const zodiacImages = Array.from(Array(12), (el, i) =>
+                    el = {
+                        "source": '/img/zodiac/' + String(i) + '.png',
+                        "x": .4 + rImages * Math.cos(defA3D.rotate * Math.PI / 180 + Math.PI / 6 * i + Math.PI / 12),
+                        "y": (defA3D.direction == "clockwise") ? (.6 - (rImages * Math.sin(-defA3D.rotate * Math.PI / 180 + Math.PI / 6 * i + Math.PI / 12)) * 0.9) : (.6 + (rImages * Math.sin(defA3D.rotate * Math.PI / 180 + Math.PI / 6 * i + Math.PI / 12)) * 0.9),
+                        "sizex": .04,
+                        "sizey": .04,
+                        "xanchor": "center",
+                        "yanchor": "middle",
+                        opacity: 0.6,
+                    }
+                );
+                layout = {
+                    hoverlabel: { bgcolor: 'rgba(255,255,255,0.5)' },
+                    clickmode: 'event',
+                    hovermode: 'closest',
+                    images: zodiacImages,
+                    title: {
+                        text: `<b>Planets in the ` + ((data.flag == 260) ? `topo` : `gelio`) + `centric system<br>from ` +
+                            new Date(data.dateStart).toLocaleDateString().slice(0, 10) + ` to ` +
+                            new Date(data.dateEnd).toLocaleDateString().slice(0, 10) + `</b>`,
+                        x: 0.5,
+                        xanchor: 'center',
+                        y: 0.965,
+                        font: { size: 15 }
+                    },
+                    legend: {
+                        title: { text: '<b>Astro3D.ru</b>', font: { color: '#8900FF' } },
+                        xanchor: 'left',//'right','center'
+                        yanchor: "center",
+                        y: 0.9,
+                        xref: 'paper',//"container",
+                        yref: 'paper',//"container",
+                        x: -0.1,
+                        itemwidth: 35,
+                        tracegroupgap: 20,
+                    },
+                    polar: {
+                        domain: {
+                            x: [0, .8],
+                            y: [0.3, 0.9]
+                        },
+                        radialaxis: {
+                            autorange: false,
+                            range: [data0, data.dateEnd],
+                            tickfont: {
+                                size: 12
+                            },
+                            layer: 'below traces',
+                            angle: 90,
+                        },
+                        angularaxis: {
+                            autorange: false,
+                            visible: false,
+                            direction: defA3D.direction,//"clockwise",
+                            rotation: (defA3D.direction == "clockwise") ? (((defA3D.rotate == '90') || (defA3D.rotate == '270')) ? (Number(defA3D.rotate) + 90) : defA3D.rotate) : defA3D.rotate,
+                        },
+                    },
+                    yaxis: {
+                        anchor: 'y',
+                        autorange: true,
+                        range: [0, 1],
+                        visible: false,
+                    },
+                    xaxis: {
+                        anchor: 'x',
+                        autorange: true,
+                        range: [0, 1],
+                        visible: false,
+                    },
+                    yaxis2: {//planets
+                        anchor: 'y2',
+                        domain: [0.9 - (2 + data.planets.length) * 0.02, .9],
+                        range: [data.planets.length + 1, -1],
+                        visible: false,
+                        fixedrange: true,
+                        overlaying: 'y',
+                    },
+                    xaxis2: {//planets
+                        anchor: 'x2',
+                        domain: [0.75, 1],
+                        fixedrange: true,
+                        range: [0.09, 3],
+                        rangemode: 'nonnegative', //'tozero',
+                        visible: false,
+                        overlaying: 'x',
+                    },
+                    yaxis3: {//aspects
+                        anchor: 'y3',
+                        domain: [0.3 - (2 + data.planets.length) * 0.02, 0.3],
+                        range: [data.planets.length + 1, -1],
+                        fixedrange: true,
+                        tickvals: Array.from(data.planets, (el, i) => i + 0.5),
+                        ticktext: Array.from(data.planets, (el, i) => `<b>` + $.plSign[el] + `</b>`),
+                        ticklabelposition: 'outside top',
+                        visible: true,
+                        showgrid: true,
+                        showline: true,
+                        gridcolor: 'gray',
+                        zeroline: false,//false,
+                        overlaying: 'y',
+                        position: 0.1,
+                    },
+                    xaxis3: {//aspects
+                        anchor: 'x3',
+                        domain: [0.1, .4],
+                        fixedrange: true,
+                        range: [0.15, 0.15 + data.planets.length * .2],
+                        visible: true,
+                        showgrid: true,
+                        showline: true,
+                        zeroline: false,//false,
+                        gridcolor: 'gray',
+                        tickangle: 0,
+                        ticklabelposition: 'outside right',
+                        tickvals: Array.from(data.planets, (el, i) => 0.15 + i * .2),
+                        ticktext: Array.from(data.planets, (el, i) => `<b>` + $.plSign[el] + `</b>`),
+                        overlaying: 'x',
+                        position: 0.05,
+                    },
+                    width: config.width,
+                    height: config.height,
+                    font: {
+                        family: 'monospace',
+                        size: 14,
+                    },
+                    margin: { t: 0, b: 0, l: 0, r: 0 },
+                };
+                const zodiacSector = Array.from(Array(12), (el, i) =>
+                    el = {
+                        type: "scatterpolargl",
+                        mode: "lines",
+                        name: 'zodiacSector',
+                        textinfo: 'none',
+                        hoverinfo: 'skip',
+                        theta: [30 * i, ...Array.from(Array(31), (el, y) => el = 30 * i + y), (30 * (i + 1))],
+                        r: [new Date(data.dateStart).toJSON(), ...Array.from(Array(31), (el) => el = new Date(data.dateEnd).toJSON()), new Date(data.dateStart).toJSON()],
+                        fill: "toself",
+                        fillcolor: $.zodiac.color[i], //'white'||config.zodiac.color[i],
+                        showlegend: false,
+                        line: {
+                            color: $.zodiac.color[i], //'black'||config.zodiac.color[i],
+                            size: 0, //1||0,
+                        },
+                        opacity: .15,
+                        subplot: "polar"//zodiac
+                    }
+                );
+                const zodiacHole = {
+                    type: "scatterpolargl",
+                    mode: "lines",
+                    name: 'hole',
+                    textinfo: 'none',
+                    hoverinfo: 'none',
+                    theta: Array.from(Array(361), (el, i) => i),
+                    r: Array.from(Array(361), (el) => el = new Date(data.dateStart).toJSON()),
+                    fill: "toself",
+                    fillcolor: 'white',
+                    showlegend: false,
+                    line: {
+                        color: "#888888"
+                    },
+                    opacity: 1,
+                    subplot: "polar"
+                };
+                let periodsPl = [];
+                for (const key in plsPeriod) {
+                    const trace = {
+                        visible: (key == 1) ? ((config.planets.moon.visible) ? true : "legendonly") : true,
+                        type: "scatterpolargl",
+                        mode: "markers+lines",//"markers+lines"
+                        name: $.plSign[key],
+                        theta: plsPeriod[key],
+                        r: data.out.date,
+                        text: Array.from(plsPeriod[key], (el, i) => ($.plSign[key] + ':' + $.strZod([el, speedPeriod[key][i]]).text)),
+                        hoverlabel: {
+                            font: {
+                                family: 'monospace',
+                            }
+                        },
+                        line: {
+                            width: 2,
+                        },
+                        marker: {
+                            size: 1
+                        },
+                        hovertemplate: `<b>%{text} %{r}</b><extra></extra>`,
+                        hoverinfo: 'none',
+                        legendgrouptitle: { text: "Planets" },
+                        subplot: "polar"
+                    };
+                    periodsPl.push(trace);
+                };
+                const radixPlsIn = {
+                    type: "scatterpolargl",
+                    name: new Date(data.out.date[current]).toJSON().slice(0, 16),
+                    mode: 'markers+text',//'markers+text'|'text'
+                    marker: {
+                        color: 'white',
+                        size: 15
+                    },
+                    hoverlabel: {
+                        font: {
+                            family: 'monospace',
+                        },
+                    },
+                    theta: Array.from(posRadixPl(Array.from(data.planets, (el, i) =>[el, [plsPeriod[el][current], speedPeriod[el][current]]]),6),(el) => el[2]),
+                    r: Array.from(data.planets, (el) => (data.dateStart - data0) * config.planets.r.out + data0),
+                    text: Array.from(data.planets, (el) => $.plSign[el]),
+                    textposition: "middle center",
+                    texttemplate: `%{text}`,
+                    customdata: Array.from(data.planets, (el, i) => ($.plSign[el] + ': ' + $.strZod([plsPeriod[el][current], speedPeriod[el][current]]).text)),
+                    hovertemplate: `<b>%{customdata}</b><extra></extra>`,
+                    showlegend: false,
+                    hoverinfo: 'none',
+                    subplot: "polar",
+                };
+                const radixAsp = calcAsp(data, current, config);
+                const traceRadixAsp = [];
+                const signRadixAsp = [];
+                radixAsp.forEach((aspects, i) => {
+                    let colors = (config.aspects.color[aspects[2].asp]) ? config.aspects.color[aspects[2].asp] : 'black';
+                    const min = Math.min(aspects[0][1][0], aspects[1][1][0]);
+                    const max = Math.max(aspects[0][1][0], aspects[1][1][0]);
+                    const aspStart = ((max - min) < 180) ? min : max;
+                    const theta = aspStart + aspects[2].asp / 2;
+                    const aspRad = aspects[2].degree * (Math.PI / 360);
+                    const rSignRadixAsp = Math.abs(Math.cos(aspRad)) * (data.dateStart - data0) * config.aspects.r.out + data0;
+                    const rDate = new Date(rSignRadixAsp).toJSON();
+                    const customdata = hoverAsp(aspects);
+                    const name = $.plSign[aspects[0][0]] + ` ` + aspects[2].asp + ` ` + $.plSign[aspects[1][0]];
+                    if (aspects[2].asp > 0) {
+                        signRadixAsp.push({
+                            name: name,
+                            type: "scatterpolargl",
+                            mode: "text+markers",
+                            r: [rDate],
+                            theta: [theta],
+                            text: [$.aspSign[aspects[2].asp]],
+                            customdata: [customdata],
+                            textfont: {
+                                color: [colors],
+                                family: 'monospace',
+                            },
+                            marker: {
+                                color: 'white',//colors
+                                size: 15
+                            },
+                            hoverlabel: {
+                                font: {
+                                    family: 'monospace',
+                                },
+                            },
+                            subplot: "polar",
+                            showlegend: false,
+                            hovertemplate: "<b>%{customdata}</b><extra></extra>",
+                            textposition: '"middle center"',
+                            legendgrouptitle: { text: "Aspects" },
+                        });
+                    };
+                    traceRadixAsp.push({
+                        customdata: [customdata, customdata],
+                        name: name,
+                        type: "scatterpolargl",
+                        mode: "lines",
+                        r: Array.from(Array(2), (el) => el = (data.dateStart - data0) * config.aspects.r.out + data0),
+                        theta: [aspects[0][1][0], aspects[1][1][0]],
+                        text: Array.from(Array(2), (el) => el = name),
+                        marker: {
+                            color: colors,
+                            size: 5
+                        },
+                        line: {
+                            width: 2,
+                        },
+                        hoverlabel: {
+                            font: {
+                                family: 'monospace',
+                            },
+                        },
+                        textinfo: 'none',
+                        subplot: "polar",
+                        showlegend: false,
+                        hovertemplate: "<b>%{customdata}</b><extra></extra>",
+                        legendgrouptitle: { text: "Aspects" },
+                    });
+                });
+                const fontsize = (layout.width < 700) ? 11 : 13;
+                const plsNameTableTrace = {
+                    text: Array.from(data.planets, (el, i) => ($.plSign[el])),
+                    x: Array.from(data.planets, (el) => el = 0.1),
+                    y: Array.from(data.planets, (el, i) => el = i),
+                    customdata: Array.from(data.planets, (el) => $ad.plName[el] + ` speed: ` + speedPeriod[el][current].toFixed(2)),
+                    hovertemplate: `<b>%{customdata}</b><extra></extra>`,
+                    texttemplate: `<b>%{text}</b>`,
+                    textposition: 'middle right',
+                    type: 'scatter',
+                    mode: "text",//"lines+markers+text"
+                    hoverinfo: 'none',
+                    xaxis: 'x2',
+                    yaxis: 'y2',
+                    showlegend: false,
+                    textfont: {
+                        color: Array.from(data.planets, (el) => ($.zodiac.color[$.strZod([plsPeriod[el][current], speedPeriod[el][current]]).sign])),
+                        size: fontsize,
+                    },
+                    hoverlabel: {
+                        font: {
+                            family: 'monospace',
+                            size: fontsize,
+                        },
+                    },
+                };
+                const plsValuesTableTrace = {
+                    text: Array.from(data.planets, (el) => ((android) ? $.strZod([plsPeriod[el][current], speedPeriod[el][current]]).textDegSignMinEmj : $.strZod([plsPeriod[el][current], speedPeriod[el][current]]).textDegSignMin)),
+                    x: Array.from(data.planets, (el) => el = 0.5),
+                    y: Array.from(data.planets, (el, i) => el = i),
+                    customdata: Array.from(data.planets, (el) => $ad.plName[el] + ` speed: ` + speedPeriod[el][current].toFixed(2)),
+                    texttemplate: `<b>%{text}</b>`,
+                    hovertemplate: `<b>%{customdata}</b><extra></extra>`,
+                    textposition: 'middle right',
+                    type: 'scatter',
+                    mode: "text",//"lines+markers+text"
+                    xaxis: 'x2',
+                    yaxis: 'y2',
+                    showlegend: false,
+                    textfont: {
+                        size: fontsize,
+                    },
+                    hoverlabel: {
+                        font: {
+                            family: 'monospace',
+                            size: fontsize,
+                        },
+                    },
+                };
+                const plsSpeedTableTrace = {
+                    text: Array.from(data.planets, (el) => ($.strZod([plsPeriod[el][current], speedPeriod[el][current]]).textSpeed)),
+                    x: Array.from(data.planets, (el) => el = 1.5),
+                    y: Array.from(data.planets, (el, i) => el = i),
+                    customdata: Array.from(data.planets, (el) => $ad.plName[el] + ` speed: ` + speedPeriod[el][current].toFixed(2)),
+                    texttemplate: `<b>%{text}</b>`,
+                    hovertemplate: `<b>%{customdata}</b><extra></extra>`,
+                    textposition: 'middle right',
+                    type: 'scatter',
+                    mode: "text",//"lines+markers+text"
+                    xaxis: 'x2',
+                    yaxis: 'y2',
+                    showlegend: false,
+                    textfont: {
+                        size: fontsize,
+                    },
+                    hoverlabel: {
+                        font: {
+                            family: 'monospace',
+                            size: fontsize,
+                        },
+                    },
+                };
+                const aspTablePlsTrace = {
+                    text: Array.from(data.planets, (el, i) => ($.plSign[el])),
+                    x: Array.from(data.planets, (el, i) => el = 0.2 + i * .2),
+                    y: Array.from(data.planets, (el, i) => el = i),
+                    texttemplate: `<b>%{text}</b>`,
+                    textposition: 'middle right',
+                    type: 'scatter',
+                    mode: "text",//"lines+markers+text"
+                    hoverinfo: 'none',
+                    xaxis: 'x3',
+                    yaxis: 'y3',
+                    showlegend: false,
+                    textfont: {
+                        size: fontsize,
+                    },
+                };
+                const aspTableTrace = {
+                    text: Array.from(radixAsp, (el, i) => ($.aspSign[el[2].asp])),
+                    x: Array.from(radixAsp, (el, i) => el = 0.2 + data.planets.indexOf(el[0][0]) * .2),
+                    y: Array.from(radixAsp, (el, i) => el = data.planets.indexOf(el[1][0])),
+                    texttemplate: `<b>%{text}</b>`,
+                    textposition: 'middle right',
+                    type: 'scatter',
+                    mode: "text",//"lines+markers+text"
+                    customdata: Array.from(radixAsp, (el) => hoverAsp(el)),
+                    hovertemplate: `<b>%{customdata}</b><extra></extra>`,
+                    xaxis: 'x3',
+                    yaxis: 'y3',
+                    showlegend: false,
+                    textfont: {
+                        family: 'monospace',
+                        color: Array.from(radixAsp, (el, i) => ($.colorAsp[el[2].asp])),
+                        size: fontsize,
+                    },
+                    hoverlabel: {
+                        font: {
+                            family: 'monospace',
+                            size: fontsize,
+                        },
+                    },
+                };
+                const elementsTable = {
+                    type: 'table',
+                    columnorder: [1, 2, 3, 4, 5],
+                    columnwidth: [15, 50, 50, 50, 50],
+                    header: {
+                        line: { width: 1 },
+                        values: ['', '<b>🜂</b>', '<b>🜃</b>', '<b>🜁</b>', '<b>🜄</b>'],
+                        font: { size: 14, color: "white" },
+                        fill: { color: ['white', $.hexToRGB($.zodiac.color[0], 0.7), $.hexToRGB($.zodiac.color[1], 0.7), $.hexToRGB($.zodiac.color[2], 0.7), $.hexToRGB($.zodiac.color[3], 0.7)] },
+
+                    },
+                    cells: {
+                        opacity: 0.5,
+                        values: [['<b>➩</b>', '<b>➨</b>', '<b>⇶</b>']].concat(calcElements(data, current)),
+                        align: "left",
+                        line: { width: 1 },
+                        fill: { color: ['gray', $.hexToRGB($.zodiac.color[0], 0.2), $.hexToRGB($.zodiac.color[1], 0.2), $.hexToRGB($.zodiac.color[2], 0.2), $.hexToRGB($.zodiac.color[3], 0.2)] },
+                        font: { size: 13, color: ['white', 'black'] }
+                    },
+                    domain: { y: [0, .28], x: [0.41, 0.99] }
+                };
+                const dataPlotly = [...zodiacSector, zodiacHole, ...periodsPl, radixPlsIn, ...traceRadixAsp, ...signRadixAsp, plsNameTableTrace, plsValuesTableTrace, plsSpeedTableTrace, aspTablePlsTrace, aspTableTrace, elementsTable];//
+                if (current > 0) {
+                    const currentDate = new Date(data.out.date[current]).toJSON();
+                    layout.title.text = `<b>Selected ` + new Date(currentDate).toLocaleString().slice(0, 17) + ` in the period<br>from `
+                        + new Date(data.dateStart).toLocaleDateString().slice(0, 10) + ` to ` + new Date(data.dateEnd).toLocaleDateString().slice(0, 10) + `</b>`;
+                    const piePoint = {
+                        type: "scatterpolargl",
+                        mode: "lines",
+                        textinfo: 'none',
+                        hoverinfo: 'none',
+                        theta: Array.from(Array(361), (el, i) => i),
+                        r: Array.from(Array(361), (el) => el = currentDate),
+                        showlegend: false,
+                        line: {
+                            color: "white",
+                            width: 3,
+                        },
+                        subplot: "polar"
+                    };
+                    dataPlotly.push(piePoint);
+                    const radixPlsOut = {
+                        type: "scatterpolargl",
+                        name: currentDate.slice(0, 16),
+                        mode: 'markers+text',//'markers+text'|'text'
+                        marker: {
+                            color: 'white',
+                            size: 15,
+                        },
+                        theta: Array.from(posRadixPl(Array.from(data.planets, (el, i) =>[el, [plsPeriod[el][current], speedPeriod[el][current]]]),6),(el) => el[2]),
+                        r: Array.from(data.planets, (el) => currentDate),
+                        text: Array.from(data.planets, (el) => $.plSign[el]),
+                        textposition: "middle center",
+                        customdata: Array.from(data.planets, (el, i) => ($.plSign[el] + ': ' + $.strZod([plsPeriod[el][current], speedPeriod[el][current]]).text)),
+                        hoverlabel: {
+                            font: {
+                                family: 'monospace',
+                            },
+                        },
+                        hovertemplate: `<b>%{customdata}</b><br><b>%{r}</b><extra></extra>`,
+                        texttemplate: Array.from(data.planets, (el, i) => ($.plSign[el])),
+                        showlegend: false,
+                        hoverinfo: 'none',
+                        subplot: "polar",
+                    };
+                    dataPlotly.push(radixPlsOut);
+                };
+                Plotly.react(HTML, dataPlotly, layout, config);
+                HTML.on('plotly_afterplot', () => {
+                    if (android) {
+                        Array.from(document.querySelectorAll('.x2y2 .text')[1].querySelectorAll('text tspan')).forEach((el) => {
+                            el.classList.add('android');
+                        })
+                    };
+                    document.querySelector('g.table').setAttribute('transform', 'translate(370,600),scale(.75)')
+                    const event = new CustomEvent("afterplot", { detail: 'called' });
+                    HTML.dispatchEvent(event);
+                });
+                HTML.on('plotly_doubleclick', function (data) {
+                    const event = new CustomEvent("click", { detail: data.points[0].r });
+                    HTML.dispatchEvent(event);
+                });
+                HTML.on('plotly_click', function (data) {
+                    if (!data.points[0].r) { return false };
+                    if (data.points[0].pointIndex < 1) { return false };
+                    if (new Date(data.points[0].r).getTime() < data.dateStart) { return false };
+                    HTML.removeAllListeners();
+                    HTML.calc(data.points[0].pointIndex);
+                });
+                HTML.on('plotly_relayout', (e) => {
+                    if (Object.keys(e).length < 3) {
+                        layout.polar.radialaxis.range = [data0, data.dateEnd];
+                        layout.polar.angularaxis.rotation = 0;
+                        Plotly.relayout(HTML, layout);
+                    }
+                });
+                HTML.indata.out = {};
+            };
+            HTML.calc(0);
+        });
+    </script>
+    <footer></footer>
+    <script type="module" src="/js/fragments/header.js"></script>
+    <script type="module" src="/js/fragments/footer.js"></script>
+    <script type="module">
+        document.querySelector('header select[name=nav]').value = window.location.pathname;
+    </script>
+</body>
+
+</html>

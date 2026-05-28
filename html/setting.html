@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setting</title>
+    <link rel="stylesheet" href="/css/fragments.css">
+    <script type="module" src="/js/start.js"></script>
+    <script src='/js/astro/astrodate-0.0.10.js'></script>
+    <script src='/js/lib/source-0.0.6.js'></script>
+    <script src="/js/components/select-checkbox-0.0.3.js"></script>
+    <script src="js/lib/leaflet.js"></script>
+    <script src="/js/components/geomap.js"></script>
+    <script src="/js/components/cities-autocomplete-0.0.2.js"></script>
+    <style>
+        body {
+            margin: 0;
+        }
+
+        #defA3D {
+            font-family: monospace;
+            border: 0;
+            padding: 0;
+            display: grid;
+            margin: 2px 2px;
+            justify-content: start;
+            max-height: 50%;
+        }
+
+        #defA3D * {
+            margin: 2px 2px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id='defA3D'>
+        <div>Rotate Asc: <select id="rotate">
+                <option value="0">→</option>
+                <option value="180">←</option>
+            </select></div>
+        <div>Direction Zodiac: <select id="direction">
+                <option value="clockwise">↷</option>
+                <option value="counterclockwise">↶</option>
+            </select></div>
+        <select-checkbox id="planets"></select-checkbox>
+        <select-checkbox id="aspects"></select-checkbox>
+        <label>Houses: <select id="hs"></select></label>
+        <label id="GMT">TZ: <select id="tz"></select></label>
+        <label>Locale: <select id="locale"></select></label>
+        <div><label>City: </label><cities-autocomplete></cities-autocomplete><input type="button" id='viewMap'
+                title="Find on the map" value="🗺"></div>
+        <div id="textInfo">Warning! No selected city!!!</div>
+        <div id="maps"></div>
+    </div>
+    <script>
+        addEventListener("load", (event) => {
+            $ = {
+                getOffset: Source.def.getOffset,
+                searchCity: Source.net.searchCities,
+                findTZByLngLat: Source.def.findTZByLngLat,
+                reverseCitiesNoTZ: Source.def.reverseCitiesNoTZ,
+                sourceMap: Source.def.sourceMap,
+                plSign: $ad.plSignChort,
+                aspSign: $ad.aspSign,
+                textTZMinToHour: $ad.textTZMinToHour,
+                stringLatLng: $ad.stringLatLng,
+                houses: Source.def.houses,
+                dbSave: (data, key = 'defA3D') => { localStorage.setItem(key, JSON.stringify(data)) },
+                dbLoad: (key = 'defA3D') => { return JSON.parse(localStorage.getItem(key)) },
+            };
+            let defA3D = $.dbLoad('defA3D');
+            const temp = document.querySelector('#defA3D');
+            temp.addEventListener('change', (e) => {
+                $.dbSave(defA3D);
+                render(temp, defA3D);
+            });
+            temp.querySelector('#tz').innerHTML = ``;
+            Intl.supportedValuesOf('timeZone').forEach((el) => {
+                let option = document.createElement("option");
+                option.text = el;
+                option.value = el;
+                temp.querySelector('#tz').add(option);
+            });
+            temp.querySelector('#hs').innerHTML = ``;
+            for (let key in $.houses) {
+                temp.querySelector('#hs').append(new Option($.houses[key], key));
+            };
+            temp.querySelector('#locale').innerHTML = ``;
+            if (navigator.languages && navigator.languages.length) {
+                navigator.languages.forEach((el) => {
+                    let option = document.createElement("option");
+                    option.text = el;
+                    option.value = el;
+                    temp.querySelector('#locale').add(option);
+                })
+            };
+            const render = (parent = document, defA3D) => {
+                parent.querySelector('#tz').value = defA3D.tz;
+                parent.querySelector('#textInfo').innerHTML = $.stringLatLng(defA3D.latitude, defA3D.longitude);
+                parent.querySelector('cities-autocomplete').value = { city: defA3D.city };
+                parent.querySelector('#locale').value = defA3D.locale;
+                parent.querySelector('#GMT').childNodes[0].textContent = 'GMT: ' + $.textTZMinToHour($.getOffset(defA3D.tz, new Date())) + ' ';
+                parent.querySelector("#aspects").obj = $.aspSign;
+                parent.querySelector("#aspects").value = defA3D.aspects;
+                parent.querySelector("#aspects").name = Array.from(defA3D.aspects, (el) => $.aspSign[el]);
+                if (parent.querySelector("#aspects").value.length == 0) {
+                    parent.querySelector("#aspects").name = 'Select aspects';
+                };
+                parent.querySelector("#planets").obj = $.plSign;
+                parent.querySelector("#planets").value = defA3D.planets;
+                parent.querySelector("#planets").name = Array.from(defA3D.planets, (el) => $.plSign[el]);
+                if (parent.querySelector("#planets").value.length == 0) {
+                    parent.querySelector("#planets").name = 'Select planets';
+                };
+                parent.querySelector("#hs").value = defA3D.houses;
+                parent.querySelector("#rotate").value = defA3D.rotate;
+                parent.querySelector("#direction").value = defA3D.direction;
+                parent.querySelector('cities-autocomplete').searchCity = $.searchCity;
+                parent.querySelector('cities-autocomplete').value = { city: defA3D.city };
+                if ((!defA3D.latitude) && (!defA3D.longitude)) {
+                    $.searchCity(defA3D.city)
+                        .then((res) => {
+                            defA3D.latitude = res[0].latitude;
+                            defA3D.longitude = res[0].longitude;
+                            parent.dispatchEvent(new Event("change", { bubbles: true, cancelable: false }));
+                        }).catch((err) => {
+                            console.log("No city");
+                        });
+                };
+                if (!parent.querySelector('#maps').hidden) {
+                    parent.querySelector('#maps').innerHTML = ``;
+                    const geomap = document.createElement('geo-map');
+                    parent.querySelector('#maps').appendChild(geomap);
+                    geomap.source = $.sourceMap;
+                    geomap.value = { latitude: Number(defA3D.latitude), longitude: Number(defA3D.longitude) };
+                    geomap.addEventListener('change', (e) => {
+                        $.findTZByLngLat(geomap.value.longitude, geomap.value.latitude).then(res => {
+                            defA3D.latitude = geomap.value.latitude;
+                            defA3D.longitude = geomap.value.longitude;
+                            defA3D.tz = res.timezone;
+                            defA3D.city = res.city;
+                            parent.dispatchEvent(new Event("change", { bubbles: true, cancelable: false }));
+                        });
+                    });
+                };
+            };
+            const renderEvent = (parent = document, defA3D) => {
+                parent.querySelector("#rotate").addEventListener("change", (e) => {
+                    defA3D.rotate = e.target.value;
+                });
+                parent.querySelector("#direction").addEventListener("change", (e) => {
+                    defA3D.direction = e.target.value;
+                });
+                parent.querySelector("#hs").addEventListener("change", (e) => {
+                    defA3D.houses = e.target.value;
+                });
+                parent.querySelector("cities-autocomplete").addEventListener("change", (e) => {
+                    defA3D.city = e.detail.city;
+                    defA3D.latitude = e.detail.latitude;
+                    defA3D.tz = e.detail.timeZone;
+                    defA3D.longitude = e.detail.longitude;
+                    parent.dispatchEvent(new Event("change", { bubbles: true, cancelable: false }));
+                });
+                parent.querySelector('#viewMap').addEventListener("click", (e) => {
+                    const el = parent.querySelector('#maps');
+                    if (el.hidden) {
+                        el.innerHTML = ``;
+                        el.hidden = false;
+                        const geomap = document.createElement('geo-map');
+                        el.appendChild(geomap);
+                        geomap.source = $.sourceMap;
+                        geomap.value = { latitude: Number(defA3D.latitude), longitude: Number(defA3D.longitude) };
+                        geomap.addEventListener('change', (e) => {
+                            $.findTZByLngLat(geomap.value.longitude, geomap.value.latitude).then(res => {
+                                defA3D.latitude = geomap.value.latitude;
+                                defA3D.longitude = geomap.value.longitude;
+                                defA3D.tz = res.timezone;
+                                defA3D.city = res.city;
+                                parent.dispatchEvent(new Event("change", { bubbles: true, cancelable: false }));
+                            });
+                        });
+                    }
+                    else {
+                        el.hidden = true;
+                    };
+                });
+                parent.querySelector("#planets").addEventListener("change", (e) => {
+                    defA3D.planets = e.target.value;
+                    parent.dispatchEvent(new Event("change", { bubbles: true, cancelable: false }));
+                });
+                parent.querySelector("#aspects").addEventListener("change", (e) => {
+                    defA3D.aspects = e.target.value;
+                    parent.dispatchEvent(new Event("change", { bubbles: true, cancelable: false }));
+                });
+                parent.querySelector("#tz").addEventListener("change", (e) => {
+                    defA3D.tz = e.target.value;
+                });
+                parent.querySelector("#locale").addEventListener("change", (e) => {
+                    defA3D.locale = e.target.value;
+                    switch (defA3D.locale.slice(0, 2)) {
+                        case 'ru':
+                            fetch('/js/i18n/ru.json').then((response) => response.json()).then((json) => { defA3D.i18n = json;$.dbSave(defA3D); });
+                            break;
+                        default:
+                            fetch('/js/i18n/en.json').then((response) => response.json()).then((json) => { defA3D.i18n = json;$.dbSave(defA3D); });
+                            break;
+                    };
+                });
+            };
+            render(temp, defA3D);
+            renderEvent(temp, defA3D);
+        });
+    </script>
+</body>
+
+</html>

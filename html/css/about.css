@@ -1,0 +1,24 @@
+body {
+    font-family: monospace;
+    margin: 0;
+    padding: 0;
+
+}
+
+body * {
+    margin: 0 auto;
+    border: 0;
+}
+
+.center {
+    text-align: center;
+    position: relative;
+    margin: 5px;
+    padding: 5px;
+    top: 0;
+    left: 0;
+}
+footer {
+    position: sticky;
+    bottom: 0;
+}
