@@ -66,7 +66,7 @@
         addEventListener("load", (event) => {
             const $ = {
                 hourToTime: $ad.hourToTime,
-                getPlanetPeriod: Source.def.getPlanetPeriod,
+                getPlanetPeriod: Source.net.getPlanetPeriod,
                 plSign: $ad.plSignChort,
                 strZod: $ad.strZod,
                 zeroPadded: $ad.zeroPadded,
@@ -152,11 +152,12 @@
             });
             const HTML = document.getElementById('chart');
             HTML.indata = ephe2D;
-            HTML.calc = (parent) => {
+            HTML.calc = async (parent) => {
                 const promiseAll = [];
-                promiseAll.push((() => {
+                promiseAll.push((async () => {
                     const start = new Date().getTime();
-                    const out = $.getPlanetPeriod(parent.indata, parent.indata.flag).out;
+                    const periodData = await $.getPlanetPeriod(parent.indata, parent.indata.flag);
+                    const out = periodData.out;
                     const table = document.createElement("table");
                     const thead = document.createElement("thead");
                     table.appendChild(thead);
@@ -189,18 +190,20 @@
                             row.classList.add('day0');
                         }
                         if (parent.indata.sidetime) {
-                            row.insertCell(-1).innerHTML = $.hourToTime(out.sidetime[i]);
+                            row.insertCell(-1).innerHTML = (out.sidetime && out.sidetime[i] !== undefined) ? $.hourToTime(out.sidetime[i]) : '';
                         }
                     })
                     for (const [planets, value] of Object.entries(out.planets)) {
                         value.forEach((data, i) => {
                             let row = tbody.rows[i];
-                            const dataObj = $.strZod([data, out.speed[planets][i]]);
+                            if (!row) return; // Защита от отсутствия строки в tbody
+                            const speedVal = (out.speed && out.speed[planets] && out.speed[planets][i] !== undefined) ? out.speed[planets][i] : 1;
+                            const dataObj = $.strZod([data, speedVal]);
                             if (parent.indata.speed) {
                                 row.insertCell(-1).innerHTML = (android) ? $.zeroPadded(dataObj.deg) +
                                     `<img class='android' src=/img/zodiac/` + dataObj.sign + `.png>` +
                                     $.zeroPadded(dataObj.min) + `'` + $.zeroPadded(dataObj.sec) + `"` : $.strZod([data, 1]).text;
-                                row.insertCell(-1).innerHTML = $.strZod([data, out.speed[planets][i]]).textSpeed;
+                                row.insertCell(-1).innerHTML = $.strZod([data, speedVal]).textSpeed;
                             } else {
                                 row.insertCell(-1).innerHTML = (android) ? $.zeroPadded(dataObj.deg) +
                                     `<img class='android' src=/img/zodiac/` + dataObj.sign + `.png>` +
