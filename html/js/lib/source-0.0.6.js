@@ -113,10 +113,27 @@ class Source {
 
     });
 
-    static #net_getAstroData = (async (chart, flag = (Swe.SEFLG_SPEED | Swe.SEFLG_SWIEPH)) => {
-        chart.flag = flag;
-        return await Source.#postJSON('api/astro/radix', chart)
-            .then((res) => { return res });
+    static #net_getAstroData = (async (chart) => {
+        const dMatch = chart.in.dateToJSON.match(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/);
+        const date = dMatch ? dMatch[1] : '';
+        const time = dMatch ? dMatch[2] : '12:00';
+        const params = new URLSearchParams({
+            date: date,
+            time: time,
+            lat: chart.in.latitude,
+            lon: chart.in.longitude,
+            hsys: chart.set.house || 'P',
+            planets: chart.set.planets ? chart.set.planets.join(',') : '',
+            aspects: chart.set.aspects ? chart.set.aspects.join(',') : ''
+        });
+        return await Source.#getJSON('/api/v1/natal?' + params.toString())
+            .then(res => {
+                if (!res) return null;
+                return {
+                    planets: res.planets.map(p => [p.id, [p.longitude, p.speed]]),
+                    cusps: res.houses.map(h => h.longitude)
+                };
+            });
     });
     static #local_getAstroData = ((chart, flag = (Swe.SEFLG_SPEED | Swe.SEFLG_MOSEPH)) => {
         let [, year, month, day, hour, min, sec] = (chart.in.dateToJSON).match(/(\d{4})-(\d{2})-(\d{2})T(\d{2})\:(\d{2})\:(\d{2})/);
@@ -159,10 +176,40 @@ class Source {
     });
     //in chartPeriod = { 'dateStart': Number, 'dateEnd': Number, 'planets': [], 'stepMin': stepMin }
     //out chartPeriod.out={'date':traceDate,'planets':tracePlanets,speed:speedPlanets}
-    static #net_getPlanetPeriod = (async (chartPeriod, flag = (Swe.SEFLG_SPEED | Swe.SEFLG_SWIEPH)) => {
-        chartPeriod.flag = flag;
-        return await Source.#postJSON('api/astro/period', chartPeriod)
-            .then((res) => { return res });
+    static #net_getPlanetPeriod = (async (chartPeriod) => {
+        const formatTime = (ts) => new Date(ts).toISOString().replace('T', ' ').slice(0, 16);
+        const params = new URLSearchParams({
+            start: formatTime(chartPeriod.dateStart),
+            end: formatTime(chartPeriod.dateEnd),
+            step: Math.round(chartPeriod.stepMin / 60).toString(),
+            planets: chartPeriod.planets ? chartPeriod.planets.join(',') : ''
+        });
+
+        return await Source.#getJSON('/api/v1/period?' + params.toString())
+            .then(res => {
+                if (!res) return null;
+                const traceDate = [];
+                const tracePlanets = {};
+                const speedPlanets = {};
+
+                chartPeriod.planets.forEach(el => {
+                    tracePlanets[el] = [];
+                    speedPlanets[el] = [];
+                });
+
+                res.slices.forEach(slice => {
+                    traceDate.push(slice.timestamp);
+                    slice.planets.forEach(p => {
+                        if (tracePlanets[p.id] !== undefined) {
+                            tracePlanets[p.id].push(p.longitude);
+                            speedPlanets[p.id].push(p.speed);
+                        }
+                    });
+                });
+
+                chartPeriod.out = { 'date': traceDate, 'planets': tracePlanets, 'speed': speedPlanets };
+                return chartPeriod;
+            });
     });
     static #local_getPlanetPeriod = ((chartPeriod, flag = (Swe.SEFLG_SPEED | Swe.SEFLG_MOSEPH)) => {
         //        flag = (Swe.SEFLG_SPEED | Swe.SEFLG_MOSEPH|Swe.SEFLG_HELCTR );
