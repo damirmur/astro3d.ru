@@ -146,16 +146,16 @@ class AstroChartsDBview extends HTMLElement {
         this.#source = val ||
         {
             'newChart': new Chart(),
-            "getAstroData": Source.def.getAstroData,
-            'searchCities': Source.def.searchCities,
-            'findTZByLngLat': Source.def.findTZByLngLat,
-            'sourceMap': Source.def.sourceMap,
+            "getAstroData": Source.net.getAstroData,
+            'searchCities': Source.net.searchCities,
+            'findTZByLngLat': Source.net.findTZByLngLat,
+            'sourceMap': Source.net.sourceMap,
             // 'viewChart': $ad.tableOutTableChart,
         };
-        if (!this.#source.getAstroData) { this.#source.getAstroData = Source.def.getAstroData };
-        if (!this.#source.searchCities) { this.#source.searchCities = Source.def.searchCities };
-        if (!this.#source.findTZByLngLat) { this.#source.findTZByLngLat = Source.def.findTZByLngLat };
-        if (!this.#source.sourceMap) { this.#source.sourceMap = Source.def.sourceMap };
+        if (!this.#source.getAstroData) { this.#source.getAstroData = Source.net.getAstroData };
+        if (!this.#source.searchCities) { this.#source.searchCities = Source.net.searchCities };
+        if (!this.#source.findTZByLngLat) { this.#source.findTZByLngLat = Source.net.findTZByLngLat };
+        if (!this.#source.sourceMap) { this.#source.sourceMap = Source.net.sourceMap };
         // if (!this.#source.viewChart) { this.#source.viewChart = Source.net.viewChart };
         if (!this.#source.newChart) { this.#source.newChart = new Chart() };
         this.#render();
