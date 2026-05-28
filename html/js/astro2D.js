@@ -14,7 +14,6 @@ loadScript('/js/web_statisic/google.js')
     .then(script => loadScript('/js/astro/astrodate-0.0.10.js'))
     .then(script => loadScript('/js/lib/source-0.0.6.js'))
     .then(script => loadScript('/js/components/select-checkbox-0.0.3.js'))
-    .then(script => loadScript('/js/ephe/pluto.min.js'))
     .then(script => loadScript('https://cdn.plot.ly/plotly-2.27.1.min.js'))
     .then(script => loadScript('https://cdn.plot.ly/plotly-locale-ru-latest.js'))
     .then(script => (() => {
