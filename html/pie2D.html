@@ -56,8 +56,8 @@
     <script type="module">
         addEventListener("load", (event) => {
             const $ = {
-                getPlanetPeriod: Source.def.getPlanetPeriod,
-                getAstroData: Source.def.getAstroData,
+                getPlanetPeriod: Source.net.getPlanetPeriod,
+                getAstroData: Source.net.getAstroData,
                 getOffset: Source.def.getOffset,
                 localDateJSON: Source.def.localDateJSON,
                 plSign: $ad.plSignChort,
@@ -75,7 +75,7 @@
             };
             let defA3D = $.dbLoad('defA3D');
             let setPie2D = ($.dbLoad()) ? $.dbLoad() : {
-                planets: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12],
+                planets: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12],
                 aspects: [0, 60, 90, 120, 180],
                 flag: 260 //260|268 =((Swe.SEFLG_SPEED | Swe.SEFLG_MOSEPH))|((Swe.SEFLG_SPEED | Swe.SEFLG_MOSEPH|Swe.SEFLG_HELCTR ))
             };
@@ -154,6 +154,7 @@
             HTML.textContent = ``;
             HTML.indata = setPie2D;
             HTML.calc = (current = 0) => {
+                let plsPeriod, speedPeriod;
                 const calcAsp = (data, current = 0, config) => {
                     const pls0 = Array.from(data.planets, (el) => el = [el, [data.out.planets[el][current]]]);
                     return $.aspectRadix(pls0, data.aspects)
@@ -219,9 +220,10 @@
                 };
                 let data = HTML.indata;
                 let layout = HTML.layout;
-                data = $.getPlanetPeriod(data, data.flag);
-                let plsPeriod = data.out.planets;
-                let speedPeriod = data.out.speed;
+                $.getPlanetPeriod(data, data.flag).then(res => {
+                data = res;
+                plsPeriod = data.out.planets;
+                speedPeriod = data.out.speed;
                 const data0 = data.dateStart - (data.dateEnd - data.dateStart) * config.hole;//0
                 const rImages = .09 + (.43 * config.hole / (config.hole + 1));
                 const zodiacImages = Array.from(Array(12), (el, i) =>
@@ -516,7 +518,7 @@
                     text: Array.from(data.planets, (el, i) => ($.plSign[el])),
                     x: Array.from(data.planets, (el) => el = 0.1),
                     y: Array.from(data.planets, (el, i) => el = i),
-                    customdata: Array.from(data.planets, (el) => $ad.plName[el] + ` speed: ` + speedPeriod[el][current].toFixed(2)),
+                    customdata: Array.from(data.planets, (el) => $ad.plName[el] + ` speed: ` + (speedPeriod[el] && speedPeriod[el][current] !== undefined ? speedPeriod[el][current].toFixed(2) : "0.00")),
                     hovertemplate: `<b>%{customdata}</b><extra></extra>`,
                     texttemplate: `<b>%{text}</b>`,
                     textposition: 'middle right',
@@ -527,7 +529,7 @@
                     yaxis: 'y2',
                     showlegend: false,
                     textfont: {
-                        color: Array.from(data.planets, (el) => ($.zodiac.color[$.strZod([plsPeriod[el][current], speedPeriod[el][current]]).sign])),
+                        color: Array.from(data.planets, (el) => (plsPeriod[el] && speedPeriod[el] ? $.zodiac.color[$.strZod([plsPeriod[el][current], speedPeriod[el][current]]).sign] : "#000000")),
                         size: fontsize,
                     },
                     hoverlabel: {
@@ -538,10 +540,10 @@
                     },
                 };
                 const plsValuesTableTrace = {
-                    text: Array.from(data.planets, (el) => ((android) ? $.strZod([plsPeriod[el][current], speedPeriod[el][current]]).textDegSignMinEmj : $.strZod([plsPeriod[el][current], speedPeriod[el][current]]).textDegSignMin)),
+                    text: Array.from(data.planets, (el) => (plsPeriod[el] && speedPeriod[el] ? ((android) ? $.strZod([plsPeriod[el][current], speedPeriod[el][current]]).textDegSignMinEmj : $.strZod([plsPeriod[el][current], speedPeriod[el][current]]).textDegSignMin) : "")),
                     x: Array.from(data.planets, (el) => el = 0.5),
                     y: Array.from(data.planets, (el, i) => el = i),
-                    customdata: Array.from(data.planets, (el) => $ad.plName[el] + ` speed: ` + speedPeriod[el][current].toFixed(2)),
+                    customdata: Array.from(data.planets, (el) => $ad.plName[el] + ` speed: ` + (speedPeriod[el] && speedPeriod[el][current] !== undefined ? speedPeriod[el][current].toFixed(2) : "0.00")),
                     texttemplate: `<b>%{text}</b>`,
                     hovertemplate: `<b>%{customdata}</b><extra></extra>`,
                     textposition: 'middle right',
@@ -561,10 +563,10 @@
                     },
                 };
                 const plsSpeedTableTrace = {
-                    text: Array.from(data.planets, (el) => ($.strZod([plsPeriod[el][current], speedPeriod[el][current]]).textSpeed)),
+                    text: Array.from(data.planets, (el) => (plsPeriod[el] && speedPeriod[el] ? $.strZod([plsPeriod[el][current], speedPeriod[el][current]]).textSpeed : "")),
                     x: Array.from(data.planets, (el) => el = 1.5),
                     y: Array.from(data.planets, (el, i) => el = i),
-                    customdata: Array.from(data.planets, (el) => $ad.plName[el] + ` speed: ` + speedPeriod[el][current].toFixed(2)),
+                    customdata: Array.from(data.planets, (el) => $ad.plName[el] + ` speed: ` + (speedPeriod[el] && speedPeriod[el][current] !== undefined ? speedPeriod[el][current].toFixed(2) : "0.00")),
                     texttemplate: `<b>%{text}</b>`,
                     hovertemplate: `<b>%{customdata}</b><extra></extra>`,
                     textposition: 'middle right',
@@ -721,6 +723,7 @@
                     }
                 });
                 HTML.indata.out = {};
+            });
             };
             HTML.calc(0);
         });

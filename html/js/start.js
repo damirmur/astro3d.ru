@@ -16,7 +16,7 @@ const dbSave = (data, key = 'defA3D') => { localStorage.setItem(key, JSON.string
 const dbLoad = (key = 'defA3D') => { return JSON.parse(localStorage.getItem(key)) };
 
 let defA3D = {
-    planets: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+    planets: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12],
     aspects: [0, 60, 90, 120, 180],
     type: 'horo',
     houses: 'P',

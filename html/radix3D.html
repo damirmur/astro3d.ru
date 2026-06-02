@@ -169,13 +169,13 @@
         addEventListener("load", (event) => {
             const $ = {
                 newChart: new Chart(),
-                searchCities: Source.def.searchCities,
-                findTZByLngLat: Source.def.findTZByLngLat,
-                sourceMap: Source.def.sourceMap,
+                searchCities: Source.net.searchCities,
+                findTZByLngLat: Source.net.findTZByLngLat,
+                sourceMap: Source.net.sourceMap,
                 getAstroData: Source.net.getAstroData,
-                getPlanetPeriod: Source.def.getPlanetPeriod,
-                getOffset: Source.def.getOffset,
-                localDateJSON: Source.def.localDateJSON,
+                getPlanetPeriod: Source.net.getPlanetPeriod,
+                getOffset: Source.net.getOffset,
+                localDateJSON: Source.net.localDateJSON,
                 plSign: $ad.plSignChort,
                 aspSign: $ad.aspSign,
                 colorAsp: $ad.colorAsp,
@@ -191,19 +191,19 @@
             };
             document.querySelector('astro-chartsdbview').source = $;
             document.querySelector('astro-chartsdbview').value = $.dbLoad('db');
-            document.querySelector('astro-chartsdbview').addEventListener('change', (e) => {
+            document.querySelector('astro-chartsdbview').addEventListener('change', async (e) => {
                 if (e.detail.chart) {
                     //                    document.querySelector('astro-chartsdbview').classList.add('none');
                     if (e.detail.chart.out) {
                         chart = e.detail.chart;
                     } else {
                         let chart = { in: e.detail.chart.in, set: $.newChart.set };
-                        chart.out = $.getAstroData(chart);
+                        chart.out = await $.getAstroData(chart);
                     }
                     if (!chart.in.date) {
                         chart.in.date = $.localDateJSON(chart.in.dateToJSON, chart.in.tzMin);
                     };
-                    chart.out = $.getAstroData(chart);
+                    chart.out = await $.getAstroData(chart);
                     document.querySelector('fieldset label').textContent = chart.in.name + ' ' + new Date(chart.in.date).toLocaleString() + ' ' + chart.in.city;
                     $.dbSave(document.querySelector('astro-chartsdbview').value, 'db')
                     update();
@@ -213,8 +213,11 @@
                 };
             });
             chart = $.newChart;
-            chart.out = $.getAstroData(chart);
-            document.querySelector('fieldset label').textContent = chart.in.name + ' ' + new Date(chart.in.dateToJSON).toLocaleString() + ' ' + chart.in.city;
+            (async () => {
+                chart.out = await $.getAstroData(chart);
+                document.querySelector('fieldset label').textContent = chart.in.name + ' ' + new Date(chart.in.dateToJSON).toLocaleString() + ' ' + chart.in.city;
+                update();
+            })();
 
             const gui = new GUI({ container: document.getElementById('gui') });
             gui.close();

@@ -56,9 +56,9 @@
     <script>
         const $ = {
             с202025: window.calendarjson['202025'],
-            getPlanetPeriod: Source.def.getPlanetPeriod,
-            getLunar: Source.def.getDateLunar,
-            getAstroData: Source.def.getAstroData,
+            getPlanetPeriod: Source.net.getPlanetPeriod,
+            getLunar: Source.net.getLunar,
+            getAstroData: Source.net.getAstroData,
             getOffset: Source.net.getOffset,
             localDateJSON: Source.net.localDateJSON,
             plSign: $ad.plSignChort,
@@ -69,7 +69,6 @@
             aspectRadix: $ad.aspectRadixArr,
             df: $ad.formatStringToDate,
             zPadd: $ad.zeroPadded,
-            getPlanetPeriod: Source.def.getPlanetPeriod,
             dbSave: (data, key = 'stat2D') => { localStorage.setItem(key, JSON.stringify(data)) },
             dbLoad: (key = 'stat2D') => { return JSON.parse(localStorage.getItem(key)) },
             strZod: $ad.strZod,

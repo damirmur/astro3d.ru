@@ -359,15 +359,15 @@ class AstroChartsDBview extends HTMLElement {
         this.#shadow.querySelector('astro-chartin').searchCity = this.source.searchCities;
         this.#shadow.querySelector('astro-chartin').searchTZ = this.source.findTZByLngLat;
         this.#shadow.querySelector('astro-chartin').sourceMap = this.source.sourceMap;
-        this.#shadow.querySelector('astro-chartin').addEventListener('change', (e) => {
+        this.#shadow.querySelector('astro-chartin').addEventListener('change', async (e) => {
             let asharts = this.#shadow.querySelector('astro-charts');
             let ci = asharts.currentValueIndex;
             asharts.value[ci] = e.target.value;
             asharts.value = asharts.value;
             asharts.currentValueIndex = ci;
             let chart = { in: e.target.value, set: this.source.newChart.set };
+            chart.out = await this.source.getAstroData(chart);
             this.dispatchEvent(new CustomEvent('change', { detail: { 'chart': chart } }));
-            //chart.out = this.source.getAstroData(chart);
             // this.#shadow.querySelector("div.chartouttab").classList.remove('none');
             // this.#shadow.querySelector("astro-chartouttab").value = viewChart(chart);
         })
@@ -388,12 +388,12 @@ class AstroChartsDBview extends HTMLElement {
             }
         });
 
-        this.#shadow.querySelector('astro-charts').addEventListener('click', (e) => {
+        this.#shadow.querySelector('astro-charts').addEventListener('click', async (e) => {
             e.stopPropagation();
             if (e.detail == 1) { return };
             if (e.detail.currentValueIndex == -1) { return };
             let chart = { in: e.detail.value[e.detail.currentValueIndex], set: this.source.newChart.set };
-            chart.out = this.source.getAstroData(chart);
+            chart.out = await this.source.getAstroData(chart);
             this.dispatchEvent(new CustomEvent('change', { detail: { 'chart': chart } }));
             this.#shadow.querySelector('astro-chartin').value = chart.in;
             // this.#shadow.querySelector("div.chartouttab").classList.remove('none');

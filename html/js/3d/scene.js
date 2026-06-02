@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CSS3DObject, CSS3DSprite, CSS3DRenderer } from 'three/addons/renderers/CSS3DRenderer.js';
-import { STLLoader } from 'three/addons/loaders/STLLoader';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import Stats from 'three/addons/libs/stats.module';
 export const setting3Ddef1 = {
     'direction': true,
@@ -122,15 +122,15 @@ function init() {
     controls.update();
     window.addEventListener("resize", onWindowResize);
 }
-const loaderSTL = new STLLoader()
+const loaderGLTF = new GLTFLoader()
 
 const yog3d = new THREE.Group();
 yog3d.name = 'yog3d';
 const chacras3d = new THREE.Group();
 chacras3d.name = 'chacras';
-function addModelSTL(model, parent) {
-    loaderSTL.load(model.file,
-        function (geometry) {
+function addModelGLTF(model, parent) {
+    loaderGLTF.load(model.file,
+        function (gltf) {
             const material = new THREE.MeshPhysicalMaterial({
                 color: model.color,
                 metalness: 0.25,
@@ -141,22 +141,26 @@ function addModelSTL(model, parent) {
                 clearcoat: 1.0,
                 clearcoatRoughness: 0.25
             })
-            const mesh = new THREE.Mesh(geometry, material);
-            mesh.rotation.x += +model.rotation.x//-Math.PI/2;
-            mesh.rotation.y += +model.rotation.y//-Math.PI/2;
-            mesh.rotation.z += +model.rotation.z//-Math.PI/2;
+            gltf.scene.traverse((child) => {
+                if (child.isMesh) {
+                    child.material = material;
+                }
+            });
+            const mesh = gltf.scene;
+            mesh.rotation.x += +model.rotation.x;
+            mesh.rotation.y += +model.rotation.y;
+            mesh.rotation.z += +model.rotation.z;
             mesh.position.add(model.position)
             mesh.scale.setScalar(model.scalar);
             parent.add(mesh);
         },
-        //        (xhr) => { console.log((xhr.loaded / xhr.total) * 100 + '% loaded') },
         (xhr) => { },
         (error) => { console.log(error) }
     )
 }
 const yogChacras = () => {
     const yog = {
-        file: 'models/yog.stl',
+        file: 'model3d/yog.glb',
         color: 'white',
         scalar: 2.4,
         opacity: 0.8,
@@ -166,63 +170,63 @@ const yogChacras = () => {
     };
     const chakras = {
         muladhara: {
-            file: 'models/muladhara.stl',
+            file: 'model3d/muladhara.glb',
             color: 'red',
             scalar: 0.1,
             rotation: { x: PI / 2, y: PI / 2, z: -PI },
             position: { x: 0, y: 0, z: 0 },
         },
         svadhishthana: {
-            file: 'models/svadhishthana.stl',
+            file: 'model3d/svadhishthana.glb',
             color: 'orange',
             scalar: 0.1,
             rotation: { x: PI / 2, y: PI / 2, z: -PI },
             position: { x: 0, y: 0, z: 0.4 },
         },
         manipura: {
-            file: 'models/manipura.stl',
+            file: 'model3d/manipura.glb',
             color: 'red',
             scalar: 0.1,
             rotation: { x: PI / 2, y: PI / 2, z: -PI },
             position: { x: 0, y: 0, z: 0.8 },
         },
         anahata: {
-            file: 'models/anahata.stl',
+            file: 'model3d/anahata.glb',
             color: 'green',
             scalar: 0.1,
             rotation: { x: PI / 2, y: PI / 2, z: 0 },
             position: { x: 0, y: 0, z: 1.2 },
         },
         vishuddha: {
-            file: 'models/vishuddha.stl',
+            file: 'model3d/vishuddha.glb',
             color: 'aqua',
             scalar: 0.1,
             rotation: { x: PI / 2, y: PI / 2, z: -PI },
             position: { x: 0, y: 0, z: 1.6 },
         },
         ajna: {
-            file: 'models/ajna.stl',
+            file: 'model3d/ajna.glb',
             color: 'blue',
             scalar: 0.1,
             rotation: { x: PI / 2, y: PI / 2, z: -PI },
             position: { x: 0, y: 0, z: 2.2 },
         },
         sahasrara: {
-            file: 'models/sahasrara.stl',
+            file: 'model3d/sahasrara.glb',
             color: 'purple',
             scalar: 0.1,
             rotation: { x: PI / 2, y: PI / 2, z: 0 },
             position: { x: 0, y: 0, z: 2.6 },
         }
     };
-    addModelSTL(yog, yog3d);
-    addModelSTL(chakras.muladhara, chacras3d);
-    addModelSTL(chakras.svadhishthana, chacras3d);
-    addModelSTL(chakras.manipura, chacras3d);
-    addModelSTL(chakras.anahata, chacras3d);
-    addModelSTL(chakras.vishuddha, chacras3d);
-    addModelSTL(chakras.ajna, chacras3d);
-    addModelSTL(chakras.sahasrara, chacras3d);
+    addModelGLTF(yog, yog3d);
+    addModelGLTF(chakras.muladhara, chacras3d);
+    addModelGLTF(chakras.svadhishthana, chacras3d);
+    addModelGLTF(chakras.manipura, chacras3d);
+    addModelGLTF(chakras.anahata, chacras3d);
+    addModelGLTF(chakras.vishuddha, chacras3d);
+    addModelGLTF(chakras.ajna, chacras3d);
+    addModelGLTF(chakras.sahasrara, chacras3d);
 }
 
 init();
@@ -554,13 +558,13 @@ const draw3DCharts = (data = [chart], set = setting3Ddef, rotate = { x: 0, y: 0,
         chacras3d.position.y = (set.yog.visible) ? Math.sin(rotateDraw.z) * posX : 0;
         glScene.add(chacras3d);
     };
-    if (chart.out.cusps[0])
+    if (chart && chart.out && chart.out.cusps && chart.out.cusps[0]) {
         if (set.direction) {
             rotateDraw.z += Number(chart.out.cusps[0]).toRad() + set.rotateCharts;
         } else {
             rotateDraw.z += -Number(chart.out.cusps[0]).toRad() + set.rotateCharts;
         }
-    else {
+    } else {
         rotateDraw.z = +set.rotateCharts
     };
     const positionDraw = new THREE.Vector3().add({ x: (position.x || 0), y: (position.y || 0), z: (position.z || 0) });

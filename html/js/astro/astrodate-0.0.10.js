@@ -63,20 +63,19 @@ v 0.0.10
         '7': 'Uranus',
         '8': 'Neptune',
         '9': 'Pluto',
-        '10': 'mean Node',
-        '11': 'North Node',//'true Node'
+        '10': 'North Node',//'true Node' / 'mean Node'
         '12': "Lilith",//'mean Apogee',
         '13': 'osc. Apogee',
         '14': 'Earth',
         get(num) { return $ad.plName[num] }
     };
     $ad.plSign = {
-        0: '☉', 1: '☽', 2: '☿', 3: '♀', 4: '♂', 5: '♃', 6: '♄', 7: '♅', 8: '♆', 9: '♇', 11: '☊', 12: '⚸', 14: '♁', 15: '⚷', 16: '&#11227;', 17: '⚳', 18: '⚴', 19: '⚵', 20: '⚶',
+        0: '☉', 1: '☽', 2: '☿', 3: '♀', 4: '♂', 5: '♃', 6: '♄', 7: '♅', 8: '♆', 9: '♇', 10: '☊', 12: '⚸', 14: '♁', 15: '⚷', 16: '&#11227;', 17: '⚳', 18: '⚴', 19: '⚵', 20: '⚶',
         get(num) { return $ad.plSign[num] },
         name(num) { return $ad.plName[num] }
     };
     $ad.plSignChort = {
-        0: '☉', 1: '☽', 2: '☿', 3: '♀', 4: '♂', 5: '♃', 6: '♄', 7: '♅', 8: '♆', 9: '♇', 11: '☊', 12: '⚸', 14: '♁',
+        0: '☉', 1: '☽', 2: '☿', 3: '♀', 4: '♂', 5: '♃', 6: '♄', 7: '♅', 8: '♆', 9: '♇', 10: '☊', 12: '⚸', 14: '♁',
         get(num) { return $ad.plSign[num] },
         name(num) { return $ad.plName[num] }
     };
@@ -232,17 +231,23 @@ v 0.0.10
         return (val >= 10) ? String(val) : ('&nbsp' + String(val));
     };
     $ad.strZod = ([degree, speed = 100]) => {
+        if (degree === undefined || degree === null) {
+            degree = 0;
+        }
         const result = {};
         let deg = ~~(degree % 30);
         let sign = ~~(degree / 30);
+        if (isNaN(sign) || sign < 0 || sign > 11) {
+            sign = 0;
+        }
         let minFrac = degree % 1;
         let min = ~~(degree % 1 * 60);
         let sec = ~~(degree % 1 * 60 % 1 * 60);
         let retro = (speed < 0) ? 'R' : '';
-        result.text = $ad.zeroPadded(deg) + ($ad.zod[sign].sign) + $ad.zeroPadded(min) + "'" + $ad.zeroPadded(sec) + '"' + retro;//
-        result.textemoji = $ad.zeroPadded(deg) + ($ad.zodEmoji[sign]) + $ad.zeroPadded(min) + "'" + $ad.zeroPadded(sec) + '"' + retro;//
-        result.textDegSignMin = $ad.zeroPadded(deg) + ($ad.zod[sign].sign) + $ad.zeroPadded(min) + "'";//
-        result.textDegSignMinEmj = $ad.zeroPadded(deg) + ($ad.zodEmoji[sign]) + $ad.zeroPadded(min) + "'";//
+        result.text = $ad.zeroPadded(deg) + ($ad.zod[sign] ? $ad.zod[sign].sign : '') + $ad.zeroPadded(min) + "'" + $ad.zeroPadded(sec) + '"' + retro;//
+        result.textemoji = $ad.zeroPadded(deg) + ($ad.zodEmoji[sign] || '') + $ad.zeroPadded(min) + "'" + $ad.zeroPadded(sec) + '"' + retro;//
+        result.textDegSignMin = $ad.zeroPadded(deg) + ($ad.zod[sign] ? $ad.zod[sign].sign : '') + $ad.zeroPadded(min) + "'";//
+        result.textDegSignMinEmj = $ad.zeroPadded(deg) + ($ad.zodEmoji[sign] || '') + $ad.zeroPadded(min) + "'";//
         result.textSpeed =((speed<0)?'-':' ')+ $ad.zeroPadded(~~speed) + '°' + $ad.zeroPadded(Math.abs(~~(speed % 1 * 60))) + "'" + $ad.zeroPadded(Math.abs(~~(speed % 1 * 60 % 1 * 60))) + '"';//
         result.deg = deg;
         result.numSign = sign;

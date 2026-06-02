@@ -48,10 +48,15 @@ class SelectCheckbox extends HTMLElement {
   }
   set value(val = []) {
     let checkboxes = this.#shadow.querySelector("#checkboxes");
-    for (let item of checkboxes.childNodes) { item.querySelector('div label input').checked = false }
+    if (!checkboxes) return;
+    for (let item of checkboxes.childNodes) {
+      const inp = item.querySelector('input');
+      if (inp) inp.checked = false;
+    }
     if (Array.isArray(val)) {
       val.forEach((el) => {
-        checkboxes.querySelector('#a' + String(el)).checked = true;
+        const target = checkboxes.querySelector('#a' + String(el));
+        if (target) target.checked = true;
       });
     }
   };
