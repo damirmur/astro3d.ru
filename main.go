@@ -114,6 +114,32 @@ func GetExecutableDir() string {
 	return filepath.Dir(exePath)
 }
 
+// GetEphePath возвращает путь к папке ephe с поддержкой различных сред выполнения
+func GetEphePath() string {
+	// 1. Проверяем переменную окружения EPHE_PATH
+	if envPath := os.Getenv("EPHE_PATH"); envPath != "" {
+		if _, err := os.Stat(envPath); err == nil {
+			return envPath
+		}
+	}
+
+	// 2. Проверяем путь относительно исполняемого файла (для продакшна)
+	if exePath, err := os.Executable(); err == nil {
+		path := filepath.Join(filepath.Dir(exePath), "ephe")
+		if _, err := os.Stat(path); err == nil {
+			return path
+		}
+	}
+
+	// 3. Проверяем путь относительно текущей рабочей директории (для go run и локальной разработки)
+	if _, err := os.Stat("ephe"); err == nil {
+		return "ephe"
+	}
+
+	// Дефолтный фолбек
+	return "ephe"
+}
+
 // Парсинг конфигурации фильтров из URL-запроса
 func parseFilterConfig(q url.Values) astro.FilterConfig {
 	cfg := astro.FilterConfig{}
@@ -297,8 +323,7 @@ func handleNatal(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Расчет натальной карты
-	exeDir := GetExecutableDir()
-	ephePath := filepath.Join(exeDir, "ephe")
+	ephePath := GetEphePath()
 	calc := astro.NewCalculator(ephePath)
 	defer calc.Close()
 
@@ -423,8 +448,7 @@ func handleSynastry(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	exeDir := GetExecutableDir()
-	ephePath := filepath.Join(exeDir, "ephe")
+	ephePath := GetEphePath()
 	calc := astro.NewCalculator(ephePath)
 	defer calc.Close()
 
@@ -536,8 +560,7 @@ func handlePeriod(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	exeDir := GetExecutableDir()
-	ephePath := filepath.Join(exeDir, "ephe")
+	ephePath := GetEphePath()
 	calc := astro.NewCalculator(ephePath)
 	defer calc.Close()
 
@@ -654,8 +677,7 @@ func handleCalendar(w http.ResponseWriter, r *http.Request) {
 	calcStart := tStart.Add(-24 * time.Hour)
 	calcEnd := tEnd.Add(24 * time.Hour)
 
-	exeDir := GetExecutableDir()
-	ephePath := filepath.Join(exeDir, "ephe")
+	ephePath := GetEphePath()
 	calc := astro.NewCalculator(ephePath)
 	defer calc.Close()
 
