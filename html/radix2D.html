@@ -5,21 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Радикс-гороскоп2D</title>
-    <script src="/js/start.js"></script>
-    <script src="/js/astro/chart2D.js"></script>
-    <script src="/js/plotly/pieRadix2d.js"></script>
-    <script>
-        (() => {
-            let script = document.createElement('script');
-            script.setAttribute("src", '/js/astro2D.js?v=' + new Date().toJSON());
-            script.setAttribute("charset", 'utf-8');
-            document.head.append(script);
-            script = document.createElement('script');
-            script.setAttribute("src", '/js/components.js?v=' + new Date().toJSON());
-            script.setAttribute("charset", 'utf-8');
-            document.head.append(script);
-        })();
-    </script>
     <link rel="stylesheet" href="/css/fragments.css">
     <link rel="stylesheet" href="/css/radix2D.css">
     <style>
@@ -58,10 +43,54 @@
             margin-top: -40px;
             position: relative;
         }
+
+        .loading-indicator {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 9999;
+            text-align: center;
+            display: none;
+        }
+
+        .loading-indicator.active {
+            display: block;
+        }
+
+        .loading-indicator h3 {
+            margin: 0 0 1rem 0;
+            font-size: 1.1rem;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 
 <body>
+    <!-- Loading Indicator -->
+    <div class="loading-indicator active" id="loadingIndicator">
+        <h3>🚀 Инициализация страницы...</h3>
+        <div class="spinner"></div>
+    </div>
+
     <header id="header" class="header"></header>
     <div class="center">
         <div class="work">
@@ -103,6 +132,96 @@
             </div>
         </div>
     </div>
+
+    <!-- Main Application Script - Модульная инициализация -->
+    <script type="module">
+        import { scriptLoader } from '/js/core/loader.js';
+        import { config } from '/js/core/config.js';
+        import { storage } from '/js/core/storage.js';
+        import { chartFactory } from '/js/factory/chartFactory.js';
+
+        const loadingIndicator = document.getElementById('loadingIndicator');
+
+        async function initializeRadix2D() {
+            try {
+                console.log('🚀 Инициализация Radix 2D...');
+
+                // 1. Загружаем аналитику
+                console.log('📊 Загружаем аналитику...');
+                await scriptLoader.loadParallel([
+                    '/js/web_statisic/google.js',
+                    '/js/web_statisic/yandex.js'
+                ]).catch(e => console.warn('⚠️ Ошибка загрузки аналитики:', e));
+
+                // 2. Загружаем астрологические библиотеки
+                console.log('⭐ Загружаем астрологические библиотеки...');
+                await scriptLoader.loadSequence([
+                    '/js/astro/astrodate-0.0.10.js',
+                    '/js/lib/source-0.0.6.js'
+                ]);
+
+                // 3. Загружаем компоненты
+                console.log('🧩 Загружаем компоненты...');
+                await scriptLoader.loadSequence([
+                    '/js/components/select-checkbox-0.0.3.js'
+                ]);
+
+                // 4. Загружаем Plotly
+                console.log('📈 Загружаем Plotly...');
+                await scriptLoader.loadSequence([
+                    'https://cdn.plot.ly/plotly-2.27.1.min.js',
+                    'https://cdn.plot.ly/plotly-locale-ru-latest.js'
+                ]);
+
+                // 5. Загружаем специфичные скрипты для страницы
+                console.log('🎨 Загружаем специфичные скрипты...');
+                await scriptLoader.loadSequence([
+                    '/js/astro/chart2D.js',
+                    '/js/plotly/pieRadix2d.js'
+                ]);
+
+                // 6. Инициализируем конфигурацию
+                console.log('⚙️ Инициализируем конфигурацию...');
+                config.save();
+
+                // 7. Загружаем сохраненные карты
+                console.log('🎨 Загружаем фабрику карт...');
+                chartFactory.loadAll();
+
+                // 8. Устанавливаем русскую локаль Plotly
+                if (config.get('locale').slice(0, 2) === 'ru' && window.Plotly) {
+                    console.log('🌍 Устанавливаем русскую локаль Plotly...');
+                    window.Plotly.setPlotConfig({ locale: 'ru-RU' });
+                }
+
+                console.log('✅ Радикс 2D успешно инициализирован!');
+                loadingIndicator.classList.remove('active');
+
+                return true;
+            } catch (error) {
+                console.error('❌ Ошибка инициализации:', error);
+                loadingIndicator.innerHTML = `
+                    <h3>❌ Ошибка загрузки</h3>
+                    <p>${error.message}</p>
+                `;
+                return false;
+            }
+        }
+
+        // Инициализируем при загрузке
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeRadix2D);
+        } else {
+            initializeRadix2D();
+        }
+
+        // Экспортируем для использования
+        window.chartFactory = chartFactory;
+        window.config = config;
+        window.storage = storage;
+    </script>
+
+    <!-- Оригинальный код приложения (совместимость) -->
     <script>
         addEventListener("load", (event) => {
             const $ = {
@@ -157,7 +276,6 @@
                 radix2D.locale = c.locale || radix2D.locale;
                 radix2D.houses = c.houses || radix2D.houses;
                 radix2D.rotate = c.rotate || radix2D.rotate;
-//                radix2D.chart = c.chart || radix2D.chart;
                 radix2D.chart = radix2D.chart;
                 radix2D.direction = c.direction || radix2D.direction;
                 radix2D.city = c.city || radix2D.city;
@@ -199,7 +317,6 @@
             });
             const newDateLocal = () => {
                 const dt = new Date();
-                //dt.setMinutes(dt.getMinutes() - dt.getTimezoneOffset());
                 return dt.toISOString().slice(0, 16);
             };
             const endDateLocal = (valueAsNumber, stepMin = (1440 * 365.25)) => {
@@ -232,7 +349,6 @@
                 };
                 document.querySelector('fieldset label').textContent = radix2D.chart.in.name + ' ' + new Date(radix2D.chart.in.date).toLocaleString() + ' ' + radix2D.chart.in.city;
                 $.dbSave(document.querySelector('astro-chartsdbview').value,'db');
-                console.log(document.querySelector('astro-chartsdbview').value);
                 document.dispatchEvent(new Event("change", { bubbles: true, cancelable: false }));
             });
             const render = (radix2D) => {
@@ -251,8 +367,6 @@
                             });
                         break;
                 }
-
-
             }
             chart = $.newChart;
             chart.out = $.getAstroData(chart);
@@ -266,6 +380,7 @@
             render(radix2D);
         });
     </script>
+
     <footer></footer>
     <script type="module" src="/js/fragments/header.js"></script>
     <script type="module" src="/js/fragments/footer.js"></script>
