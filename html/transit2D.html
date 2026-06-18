@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Транзит-гороскоп 2D</title>
+    <script src="/js/start.js"></script>
+    <script src="/js/astro/chart2D.js"></script>
+    <script src="/js/plotly/pieTransit2d.js"></script>
+    <script>
+        (() => {
+            let script = document.createElement('script');
+            script.setAttribute("src", '/js/astro2D.js?v=' + new Date().toJSON());
+            script.setAttribute("charset", 'utf-8');
+            document.head.append(script);
+            script = document.createElement('script');
+            script.setAttribute("src", '/js/components.js?v=' + new Date().toJSON());
+            script.setAttribute("charset", 'utf-8');
+            document.head.append(script);
+        })();
+    </script>
+    <link rel="stylesheet" href="/css/fragments.css">
+    <link rel="stylesheet" href="/css/radix2D.css">
+    <style>
+        body {
+            font-family: monospace;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            height: 100%;
+            width: 100%;
+        }
+
+        body * {
+            margin: 0 auto;
+            border: 0;
+        }
+
+        .center {
+            min-width: max-content;
+            text-align: center;
+            position: relative;
+            margin: 5px;
+            padding: 5px;
+            top: 0;
+            left: 0;
+            min-height: 100%;
+            height: auto !important;
+            height: 100%;
+            padding-bottom: 40px;
+        }
+
+        .transit-settings {
+            margin: 10px auto;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            max-width: 600px;
+            background: #f9f9f9;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        footer {
+            margin-top: -40px;
+            position: relative;
+        }
+    </style>
+</head>
+
+<body>
+    <header id="header" class="header"></header>
+    <div class="center">
+        <div class="work">
+            <!-- Выбор радикса из базы данных -->
+            <fieldset>
+                <legend name="db"
+                    onclick="this.nextElementSibling.classList.toggle('none');this.textContent=((this.textContent=='📂')?'📁':'📂');"
+                    title="База данных карт">📂 Выберите Радикс (Натал)</legend>
+                <astro-chartsdbview class="none"></astro-chartsdbview>
+                <label style="margin: 0 5px; font-weight: bold;">Радикс не выбран</label>
+            </fieldset>
+
+            <!-- Настройки транзита -->
+            <div class="transit-settings">
+                <h3>Параметры Транзита</h3>
+                <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 10px;">
+                    <label>Дата и время транзита: 
+                        <input name="transitDate" type="datetime-local">
+                    </label>
+                </div>
+            </div>
+
+            <!-- Скрытая сетка для совместимости с чекбоксами планет и аспектов -->
+            <div class="grid" style="display: none;">
+                <select-checkbox id="planets"></select-checkbox>
+                <select-checkbox id="aspects"></select-checkbox>
+            </div>
+
+            <div id="drawChart">
+                <h3>Идет загрузка астропроцессора ...</h3>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        addEventListener("load", (event) => {
+            const $ = {
+                newChart: new Chart(),
+                getAstroData: Source.net.getAstroData,
+                plSign: $ad.plSignChort,
+                aspSign: $ad.aspSign,
+                colorAsp: $ad.colorAsp,
+                zodiac: $ad.zodiac,
+                strZod: $ad.strZod,
+                dbSave: (data, key = 'transit2D') => { localStorage.setItem(key, JSON.stringify(data)) },
+                dbLoad: (key = 'transit2D') => { return JSON.parse(localStorage.getItem(key)) },
+            };
+
+            let defA3D = $.dbLoad('defA3D') || {};
+            
+            // Основной объект состояния страницы транзита
+            let transitState = {
+                planets: defA3D.planets,
+                aspects: defA3D.aspects,
+                tz: defA3D.tz,
+                locale: defA3D.locale,
+                houses: defA3D.houses,
+                rotate: defA3D.rotate,
+                direction: defA3D.direction,
+                
+                radixChart: new Chart(),      // Карта Радикса (Натала)
+                transitChart: new Chart(),    // Карта Транзита
+            };
+
+            // Инициализация дефолтной даты транзита (Текущее время пользователя)
+            const getNowLocalDateTime = () => {
+                const dt = new Date();
+                dt.setMinutes(dt.getMinutes() - dt.getTimezoneOffset());
+                return dt.toISOString().slice(0, 16);
+            };
+            
+            const transitInput = document.querySelector("[name=transitDate]");
+            transitInput.value = getNowLocalDateTime();
+            
+            // Заполняем параметры транзитной карты
+            transitState.transitChart.in.dateToJSON = new Date(transitInput.value).toJSON();
+            transitState.transitChart.in.city = transitState.radixChart.in.city; // По умолчанию транзит в том же месте
+            transitState.transitChart.in.latitude = transitState.radixChart.in.latitude;
+            transitState.transitChart.in.longitude = transitState.radixChart.in.longitude;
+
+            // Обработчик изменения даты транзита
+            transitInput.addEventListener("change", (e) => {
+                transitState.transitChart.in.dateToJSON = new Date(e.target.value).toJSON();
+                document.dispatchEvent(new Event("change", { bubbles: true, cancelable: false }));
+            });
+
+            // Настройка чекбоксов планет и аспектов (для совместимости берем из скрытого грида)
+            document.querySelector(".grid #planets").obj = $.plSign;
+            document.querySelector(".grid #planets").value = transitState.planets;
+            document.querySelector(".grid #aspects").obj = $.aspSign;
+            document.querySelector(".grid #aspects").value = transitState.aspects;
+
+            // Слушатель выбора радикса из базы данных
+            document.querySelector('astro-chartsdbview').source = $;
+            document.querySelector('astro-chartsdbview').value = $.dbLoad('db');
+            document.querySelector('astro-chartsdbview').addEventListener('change', (e) => {
+                if (e.detail.chart) {
+                    let chart = e.detail.chart;
+                    if (!chart.set) {
+                        chart = { in: e.detail.chart.in, set: $.newChart.set };
+                    }
+                    transitState.radixChart = new Chart(chart);
+                    
+                    // Синхронизируем локацию транзита с радиксом по умолчанию
+                    transitState.transitChart.in.city = transitState.radixChart.in.city;
+                    transitState.transitChart.in.latitude = transitState.radixChart.in.latitude;
+                    transitState.transitChart.in.longitude = transitState.radixChart.in.longitude;
+                }
+                
+                const label = document.querySelector('fieldset label');
+                label.textContent = transitState.radixChart.in.name + ' ' + 
+                                    new Date(transitState.radixChart.in.dateToJSON).toLocaleString() + ' ' + 
+                                    transitState.radixChart.in.city;
+                                    
+                document.dispatchEvent(new Event("change", { bubbles: true, cancelable: false }));
+            });
+
+            // Функция рендеринга
+            const render = (state) => {
+                if (!state.radixChart.in.dateToJSON) {
+                    document.getElementById('drawChart').innerHTML = "<h3>Пожалуйста, выберите карту Радикса из базы данных выше.</h3>";
+                    return;
+                }
+
+                // Шаг 1: Получаем астро-данные для Радикса
+                Promise.resolve($.getAstroData(state.radixChart))
+                    .then(resRadix => {
+                        state.radixChart.out = resRadix;
+                        
+                        // Шаг 2: Получаем астро-данные для Транзита
+                        return $.getAstroData(state.transitChart);
+                    })
+                    .then(resTransit => {
+                        state.transitChart.out = resTransit;
+                        
+                        // Шаг 3: Отрисовываем двухкруговую карту
+                        transitGraph('drawChart', state);
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        document.getElementById('drawChart').innerHTML = "<h3>Ошибка расчета данных.</h3>";
+                    });
+            };
+
+            // Слушаем любые изменения настроек и перерисовываем
+            document.addEventListener('change', (e) => {
+                render(transitState);
+            });
+
+            // Первый запуск
+            render(transitState);
+        });
+    </script>
+    <footer></footer>
+    <script type="module" src="/js/fragments/header.js"></script>
+    <script type="module" src="/js/fragments/footer.js"></script>
+</body>
+
+</html>

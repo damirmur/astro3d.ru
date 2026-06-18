@@ -2,6 +2,7 @@ document.querySelector('header').innerHTML = `<span><select name='nav'>
 <option value="/">☰ Home</option>
 <option value="/calendar2D.html">☰ Календарь 2D</option>
 <option value="/radix2D.html">☰ Радикс-гороскоп 2D</option>
+<option value="/transit2D.html">☰ Транзит-гороскоп 2D</option>
 <option value="/radix3D.html">☰ Радикс-гороскоп 3D</option>
 <option value="/pie2D.html">☰ Карта-период 2D</option>
 <option value="/rect2D.html">☰ График-период 2D</option>
